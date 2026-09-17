@@ -1,0 +1,13 @@
+sass --watch /Users/shahnewaz/html/conca/src/assets/scss/conca.scss:/Users/shahnewaz/html/conca/src/assets/css/conca.css
+sass --watch /Users/shahnewaz/html/conca/src/assets/scss/bootstrap.scss:/Users/shahnewaz/html/conca/src/assets/css/bootstrap.css
+
+sass --watch D:\Themepure\conca\src\assets\scss\conca.scss:D:\Themepure\conca\src\assets\css\conca.css
+sass --watch D:\Themepure\conca\src\assets\scss\bootstrap.scss:D:\Themepure\conca\src\assets\css\bootstrap.css --style=compressed
+
+
+
+sass --watch /Users/shahnewaz/html/conca/src/assets/scss/bootstrap-rtl.scss:/Users/shahnewaz/html/conca/src/assets/css/bootstrap-rtl.css
+
+sass --watch /Users/shahnewaz/html/conca/src/assets/scss/bootstrap.scss:/Users/shahnewaz/html/conca/src/assets/css/bootstrap.css
+
+sass --watch /Users/shahnewaz/html/conca/src/assets/scss/conca.scss:/Users/shahnewaz/html/conca/src/assets/css/conca.css

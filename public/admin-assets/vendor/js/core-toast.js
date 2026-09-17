@@ -1,0 +1,1 @@
+// Placeholder: no custom toast helper needed for static pages.

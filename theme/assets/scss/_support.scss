@@ -1,0 +1,15 @@
+$enable-rtl : true;
+
+@mixin dir-rtl() {
+  @if $enable-rtl {
+    [dir='rtl'] {
+      @content;
+    }
+  }
+}
+
+@mixin rtl{
+  [dir=rtl] & {
+    @content;
+  }
+}

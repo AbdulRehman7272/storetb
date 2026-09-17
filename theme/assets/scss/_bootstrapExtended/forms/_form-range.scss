@@ -1,0 +1,35 @@
+// Range
+//
+// Style range inputs the same across browsers. Vendor-specific rules for pseudo
+// elements cannot be mixed. As such, there are no shared styles for focus or
+// active states on prefixed selectors.
+
+.form-range {
+    &:active{
+        &::-webkit-slider-thumb {
+            background-color: $form-range-thumb-active-bg;
+        }
+    
+        &::-moz-range-thumb {
+            background-color: $form-range-thumb-active-bg;
+        }
+    }
+    &:hover{
+        cursor: pointer;
+    }
+  
+    
+  
+    &:disabled {
+      pointer-events: none;
+  
+      &::-webkit-slider-thumb {
+        background-color: $form-range-thumb-disabled-bg;
+      }
+  
+      &::-moz-range-thumb {
+        background-color: $form-range-thumb-disabled-bg;
+      }
+    }
+  }
+  

@@ -1,0 +1,109 @@
+$header: '.app-header';
+
+#{$header}{
+    height: var(--app-header-height);
+    box-shadow: var(--app-header-shadow);
+    background-color: var(--bs-card-bg);
+
+}
+
+#{$header}-search{
+    &-input{
+        width: 100%;
+        height: 40px;
+        line-height: 40px;
+        border: 0;
+        outline: 0;
+        border-radius: 40px;
+        padding-left: 44px;
+        padding-right: 26px;
+        border: 1px solid var(--bs-gray-150);
+        background-color: var(--bs-gray-150);
+        font-size: 14px;
+        color: var(--bs-black);
+
+        &:focus{
+            background-color: var(--bs-card-bg);
+            border-color: var(--bs-primary);
+            color: var(--bs-primary);
+            &::placeholder{
+                opacity: 0;
+            }
+        }
+    }
+    &-btn{
+        position: absolute;
+        top: 50%;
+        left: 18px;
+        transform: translateY(-50%);
+        background-color: transparent;
+        color: var(--bs-gray-500);
+        border: 0;
+        outline: 0;
+
+        & svg{
+            transform: translateY(-2px);
+        }
+
+        &::placeholder{
+            color: var(--bs-gray-500);
+        }
+    }
+}
+
+#{$header}-bar{
+    &-btn{
+        background-color: transparent;
+        width: 20px;
+        height: 14px;
+        position: relative;
+        cursor: pointer;
+        display: inline-block;
+
+        & span{
+            background-color: var(--bs-gray-700);
+            position: absolute;
+            border-radius: 2px;
+            -webkit-transition: all .2s ease-in-out;
+            transition: all .2s ease-in-out;
+            width: 100%;
+            height: 2px;
+            display: block;
+            left: 0;
+
+            &:nth-child(1){
+                top: 0;
+            }
+
+            &:nth-child(2){
+                top: 6px;
+            }
+
+            &:nth-child(3){
+                bottom: 0;
+            }
+        }
+
+        &.open{
+            span:nth-child(1){
+                transform: rotateZ(45deg) scaleX(0.75) translate(6px, -3px);
+            }
+            span:nth-child(3){
+                transform: rotateZ(-45deg) scaleX(0.75) translate(6px, 3px);
+            }
+        }
+
+        &:hover{
+            span{
+                background-color: var(--bs-black);
+            }
+        }
+    }
+}
+
+.header-user{
+    .dropdown-menu {
+        top: 9px !important;
+        
+    }
+}

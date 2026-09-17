@@ -1,0 +1,8 @@
+@each $color, $value in $theme-colors {
+    @include conca-bg-variants('.bg-#{$color}', $value);
+    @include conca-bg-label-variants('.bg-label-#{$color}', $value);
+    @include conca-bg-label-solid-variants('.bg-label-solid-#{$color}', $value);
+    @include conca-bg-label-hover-variants('.bg-label-hover-#{$color}', $value);
+    @include conca-bg-label-border-variants('.bg-label-border-#{$color}', $value);
+    @include conca-bg-glow-variants('.bg-glow-#{$color}', $value);
+}

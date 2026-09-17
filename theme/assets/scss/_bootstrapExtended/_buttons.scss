@@ -1,0 +1,70 @@
+@each $color, $value in $theme-colors {
+    @include conca-button-variants('.btn-#{$color}', $value);
+
+    @include conca-button-outline-variant('.btn-outline-#{$color}', $value);
+
+    @include conca-button-label-variant('.btn-label-#{$color}', $value);
+
+    @include conca-button-ghost-variant('.btn-ghost-#{$color}', $value);
+    
+    @include conca-button-icon-variant('.btn-icon-#{$color}', $value);
+}
+
+.btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    & .badge{
+        top: initial;
+    }
+}
+
+
+.btn-xl {
+    @include button-size($btn-padding-y-xl, $btn-padding-x-xl, $btn-font-size-xl, $btn-border-radius);
+}
+
+.btn-sm {
+    @include button-size($btn-padding-y-sm, $btn-padding-x-sm, $btn-font-size-sm, $btn-border-radius);
+}
+
+.btn-xs {
+    @include button-size($btn-padding-y-xs, $btn-padding-x-xs, $btn-font-size-xs, $btn-border-radius);
+}
+
+.btn-icon{
+    width: calc(#{$btn-icon-size} + #{$btn-icon-border-width});
+    height: calc(#{$btn-icon-size} + #{$btn-icon-border-width});
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex: 0 0 auto;
+
+    &.btn-xl {
+        width: calc(#{$btn-icon-size-xl} + #{$btn-icon-border-width});
+        height: calc(#{$btn-icon-size-xl} + #{$btn-icon-border-width});
+        > span {
+          font-size: $btn-font-size-xl;
+        }
+    }
+  
+    &.btn-lg {
+      width: calc(#{$btn-icon-size-lg} + #{$btn-icon-border-width});
+      height: calc(#{$btn-icon-size-lg} + #{$btn-icon-border-width});
+      font-size: $btn-font-size-lg;
+    }
+  
+    &.btn-sm {
+      width: calc(#{$btn-icon-size-sm} + #{$btn-icon-border-width});
+      height: calc(#{$btn-icon-size-sm} + #{$btn-icon-border-width});
+      font-size: $btn-font-size-sm;
+    }
+  
+    &.btn-xs {
+      width: calc(#{$btn-icon-size-xs} + #{$btn-icon-border-width});
+      height: calc(#{$btn-icon-size-xs} + #{$btn-icon-border-width});
+      font-size: $btn-font-size-xs;
+    }
+}

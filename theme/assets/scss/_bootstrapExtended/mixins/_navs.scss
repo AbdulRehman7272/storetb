@@ -1,0 +1,17 @@
+@mixin conca-pulse-variants($parent, $background, $color: null) {
+    #{$parent} {
+        box-shadow: 0 0 0 rgba(var(--bs-#{$color}-rgb), .4);
+        animation: pulse-#{$color} 2s infinite;
+    }
+    @keyframes pulse-#{$color} {
+        0% {
+            box-shadow: 0 0 0 0 rgba(var(--bs-#{$color}-rgb),.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(var(--bs-#{$color}-rgb),0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(var(--bs-#{$color}-rgb),0);
+        }
+    }
+}

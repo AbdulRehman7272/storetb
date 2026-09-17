@@ -1,0 +1,15 @@
+
+
+.offcanvas-header .btn-close {
+    @include rtl {
+        margin: calc(-0.5 * var(--bs-offcanvas-padding-y)) auto calc(-0.5 * var(--bs-offcanvas-padding-y)) calc(-0.5 * var(--bs-offcanvas-padding-x));
+    }
+ }
+
+
+.offcanvas.text-bg-dark{
+    border-color: var(--bs-dark);
+    .offcanvas-title{
+        color: #fff;
+    }
+}

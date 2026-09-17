@@ -1,0 +1,125 @@
+
+// scss-docs-start gray-color-variables
+$white:    #fff !default;
+$gray-50: #ECECEC !default;
+$gray-100: #EFEEF0 !default;
+$gray-150: #F6F6F9 !default;
+$gray-200: #DEDEE0 !default;
+$gray-300: #BDBDC1 !default;
+$gray-400: #8C8B93 !default;
+$gray-500: #57575A !default;
+$gray-600: #51505B !default;
+$gray-700: #484751 !default;
+$gray-800: #222f36 !default;
+$gray-900: #2D2D33 !default;
+$dark: $gray-900 !default;
+$black:    #191822 !default; // dark color
+// scss-docs-end gray-color-variables
+
+$conca-input-bg-color: #F6F6F9 !default;
+$conca-input-border-color: #e4e6fc;
+
+
+$dark-10: rgba(#A6A5B2, .1) !default;
+$dark-50: #EDEDED !default;
+$dark-100: #EFEEF0 !default;
+$dark-200: #908F9A !default;
+$dark-300: #7A7983 !default;
+$dark-400: #65656D !default;
+$dark-500: #A6A5B2 !default;
+$dark-600: #333334 !default;
+$dark-700: #29292B !default;
+$dark-800: #1F1F21 !default;
+$dark-900: #161618 !default;
+
+
+
+// fusv-disable
+// scss-docs-start gray-colors-map
+$grays: (
+  "50": $gray-50,
+  "100": $gray-100,
+  "150": $gray-150,
+  "200": $gray-200,
+  "300": $gray-300,
+  "400": $gray-400,
+  "500": $gray-500,
+  "600": $gray-600,
+  "700": $gray-700,
+  "800": $gray-800,
+  "900": $gray-900
+) !default;
+// scss-docs-end gray-colors-map
+// fusv-enable
+
+// scss-docs-start color-variables
+$blue:    #2E90FA !default;
+$indigo:  #5F4AFE !default;
+$purple:  #7A5AF8 !default;
+$pink:    #EE46BC !default;
+$red:     #d50100 !default;
+$orange:  #FB6514 !default;
+$yellow:  #F79009 !default;
+$green:   #219653 !default;
+$teal:    #0BA5EC !default;
+// scss-docs-end color-variables
+
+// scss-docs-start colors-map
+$colors: (
+  "blue":       $blue,
+  "indigo":     $indigo,
+  "purple":     $purple,
+  "red":        $red,
+  "orange":     $orange,
+  "yellow":     $yellow,
+  "green":      $green,
+  "teal":       $teal,
+  "black":      $black,
+  "white":      $white,
+  "gray":       $gray-500,
+) !default;
+// scss-docs-end colors-map
+
+$social-colors: (
+  'facebook':    #1877F2,
+  'twitter':     #000000,
+  'instagram':   #e1306c,
+  'linkedin':    #2867B2,
+  'youtube':     #FF0000,
+  'pinterest':   #E60023,
+  'github':      #231E1B,
+);
+
+// The contrast ratio to reach against white, to determine if color changes from "light" to "dark". Acceptable values for WCAG 2.0 are 3, 4.5 and 7.
+// See https://www.w3.org/TR/WCAG20/#visual-audio-contrast-contrast
+$min-contrast-ratio: 1.7 !default;
+
+
+// scss-docs-start theme-color-variables
+$primary:       $indigo !default;
+$secondary:     #5A5965 !default;
+$success:       $green !default;
+$info:          $teal !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+$light:         #dfdfe3 !default;
+$lighter:       #f3f2f3 !default;
+// scss-docs-end theme-color-variables
+
+// scss-docs-start theme-colors-map
+$theme-colors: (
+  "primary":    $primary,
+  "secondary":  $secondary,
+  "success":    $success,
+  "info":       $info,
+  "warning":    $warning,
+  "danger":     $danger,
+  "light":      $light,
+  "lighter":    $lighter,
+  "dark":       $black,
+  "orange":     $orange,
+  "pink":       $pink,
+  "purple":     $purple,
+) !default;
+
+$label-color: #464646 !default;

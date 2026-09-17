@@ -1,0 +1,62 @@
+@mixin conca-bg-variants($parent, $background, $color: $background){
+    $color: color-contrast($background);
+    #{$parent} {
+        @include gradient-bg($background !important);
+        color: $color !important;
+    }
+}
+@mixin conca-bg-label-variants($parent, $background, $color: $background){
+    $label-background: if(color-contrast($background) == $color-contrast-light, shade-color($background, $btn-label-bg-shade-amount, $white), tint-color($background, $btn-label-bg-tint-amount, $white) );
+    #{$parent} {
+        background-color: rgba($color: $background, $alpha: .16) !important;
+        color: if($color, $color, $background) !important; 
+    }
+}
+@mixin conca-bg-label-solid-variants($parent, $background, $color: $background){
+    $label-background: if(color-contrast($background) == $color-contrast-light, shade-color($background, $btn-label-bg-shade-amount, $white), tint-color($background, $btn-label-bg-tint-amount, $white) );
+    #{$parent} {
+        background-color: $label-background !important;
+        color: if($color, $color, $background) !important; 
+    }
+}
+@mixin conca-bg-label-hover-variants($parent, $background, $color: $background){
+    $label-background: if(color-contrast($background) == $color-contrast-light, shade-color($background, $btn-label-bg-shade-amount, $white), tint-color($background, $btn-label-bg-tint-amount, $white) );
+    $hover-color: color-contrast($label-background);
+    $hover-background: $background;
+    $active-color: $hover-color;
+    $active-background: $hover-background;
+    #{$parent} {
+        background-color: $label-background !important;
+        color: $hover-color !important; 
+
+        &:hover{
+            color: $hover-color !important;
+            background-color: $hover-background !important;
+        }
+
+        &:focus{
+            color: $hover-color;
+            background: $hover-background;
+        }
+
+        &:active{
+            color: $active-color;
+            background: $active-background;
+        }
+    }
+}
+@mixin conca-bg-label-border-variants($parent, $background, $color: $background){
+    $label-background: if(color-contrast($background) == $color-contrast-light, shade-color($background, $btn-label-bg-shade-amount, $white), tint-color($background, $btn-label-bg-tint-amount, $white) );
+    #{$parent} {
+        border-color: $label-background !important;
+    }
+}
+
+@mixin conca-bg-glow-variants($parent, $background, $color: $background){
+    #{$parent} {
+        background-color: $background !important;
+        color: color-contrast($background) !important;
+        border-color: $background;
+        box-shadow: 0px 1px 2px 0 rgba(shade-color($background, 30%, $black), .25), 0px 0px 1px 0 shade-color($background, 30%, $black);
+    }
+}

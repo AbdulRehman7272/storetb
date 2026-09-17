@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Category;
+use App\Models\Collection;
+use App\Models\Page;
+use App\Models\PaymentAccount;
+use App\Models\Product;
+use App\Models\ShippingMethod;
+use App\Support\StoreSettings;
+use Illuminate\Http\Request;
+
+class StorefrontController extends Controller
+{
+    public function home() { return $this->render('home'); }
+    public function categories() { return $this->render('categories', [], ['title' => 'All Categories | TBrand', 'description' => 'Explore every TBrand shopping category.']); }
+    public function shop(Request $request) { return $this->render('shop', ['query' => $request->query()]); }
+    public function search(Request $request) { return $this->render('search', ['query' => $request->query('q', '')]); }
+    public function cart() { return $this->render('cart'); }
+    public function checkout() { return $this->render('checkout'); }
+
+    public function category(string $slug)
+    {
+        $category = Category::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $products = $this->products()->where('category_id', $category->id)->get();
+        return $this->render('category', ['category' => $this->categoryData($category), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => ($category->seo_title ?: $category->name).' | TBrand', 'description' => $category->seo_description ?: $category->description]);
+    }
+
+    public function collection(string $slug)
+    {
+        $collection = Collection::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $products = $collection->products()->with($this->productRelations())->where('status', 'published')->get();
+        return $this->render('collection', ['collection' => $this->collectionData($collection), 'products' => $products->map(fn ($p) => $this->productData($p))->values()]);
+    }
+
+    public function product(string $slug)
+    {
+        $product = $this->products()->where('slug', $slug)->firstOrFail();
+        $related = $this->products()->where('category_id', $product->category_id)->whereKeyNot($product->id)->limit(8)->get();
+        return $this->render('product', ['product' => $this->productData($product), 'related' => $related->map(fn ($p) => $this->productData($p))->values()], ['title' => ($product->seo_title ?: $product->name).' | TBrand', 'description' => $product->seo_description ?: str($product->description)->stripTags()->limit(155), 'image' => $product->imageUrl(), 'type' => 'product']);
+    }
+
+    public function simple(string $page)
+    {
+        $record = Page::query()->where('slug', $page)->where('is_published', true)->first();
+        return $this->render($page, ['contentPage' => ['title' => $record?->title ?: str($page)->replace('-', ' ')->title(), 'description' => $record?->body ?: '']]);
+    }
+
+    public function policy(string $slug)
+    {
+        $page = Page::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
+        return $this->render('policy', ['policy' => ['title' => $page->title, 'description' => $page->body, 'items' => []]]);
+    }
+
+    private function render(string $page, array $context = [], array $meta = [])
+    {
+        $categories = Category::query()->with('parent')->where('is_active', true)->orderBy('display_order')->get();
+        $collections = Collection::query()->where('is_active', true)->orderBy('display_order')->get();
+        $products = $this->products()->latest()->get()->map(fn ($product) => $this->productData($product))->values();
+        $categoryData = $categories->map(fn ($category) => $this->categoryData($category))->values();
+        $payload = [
+            'page' => $page, 'baseUrl' => url('/'), 'csrfToken' => csrf_token(),
+            'store' => ['name' => StoreSettings::get('store_name', 'TBrand'), 'logo' => asset(StoreSettings::get('main_logo', 'assets/brand/logo-gold-black.png')), 'currency' => StoreSettings::get('currency_symbol', 'Rs.'), 'whatsapp' => preg_replace('/\D/', '', StoreSettings::get('whatsapp', '923076690892')), 'shipping_fee' => (float) StoreSettings::get('shipping_fee', 250), 'free_shipping_threshold' => (float) StoreSettings::get('free_shipping_threshold', 5000), 'coupon' => ['code' => 'TBRAND500', 'amount' => 500]],
+            'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),
+            'products' => $context['products'] ?? $products, 'allProducts' => $products,
+            'featuredProducts' => $products->where('featured', true)->values(), 'bestSellers' => $products->sortByDesc('reviews')->take(8)->values(), 'newArrivals' => $products->take(8)->values(),
+            'categoryPromotions' => $categoryData, 'paymentAccounts' => PaymentAccount::query()->where('is_active', true)->orderBy('display_order')->get(), 'shippingMethods' => ShippingMethod::query()->where('is_active', true)->get(), 'pageContext' => $context,
+        ];
+        return view('storefront.page', ['page' => $page, 'data' => $payload, 'meta' => array_merge(['title' => StoreSettings::get('seo_title', 'TBrand | Premium Pakistani Super Store'), 'description' => StoreSettings::get('seo_description', 'Shop premium fashion, bedding, shoes, watches and accessories online in Pakistan.'), 'image' => asset('assets/brand/monogram-gold-round.png'), 'type' => 'website'], $meta)]);
+    }
+
+    private function products() { return Product::query()->with($this->productRelations())->where('status', 'published'); }
+    private function productRelations(): array { return ['category', 'media', 'variants.optionValues.option', 'collections']; }
+
+    private function productData(Product $product): array
+    {
+        $variants = $product->variants->where('is_enabled', true)->map(function ($variant) {
+            $colour = $variant->optionValues->firstWhere('option.slug', 'colour');
+            $size = $variant->optionValues->firstWhere('option.slug', 'size');
+            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $this->assetUrl($variant->image)];
+        })->values();
+        $images = $product->media->map(fn ($media) => $this->assetUrl($media->path))->filter()->merge($variants->pluck('image')->filter())->unique()->values();
+        if ($images->isEmpty()) $images->push($product->imageUrl());
+        return ['id' => $product->id, 'slug' => $product->slug, 'name' => $product->name, 'category' => $product->category?->slug, 'subcategory' => $product->category?->name, 'fabric' => collect($product->tags)->first() ?: 'Premium', 'price' => $product->price(), 'original_price' => $product->sale_price ? (float) $product->regular_price : null, 'badge' => $product->is_featured ? 'Featured' : null, 'rating' => 5, 'reviews' => 0, 'stock' => $product->stock > $product->low_stock_threshold ? 'In stock' : ($product->stock > 0 ? 'Low stock' : 'Out of stock'), 'stock_quantity' => $product->stock, 'sku' => $product->sku, 'colors' => $variants->pluck('color')->filter()->unique()->values(), 'colorSwatches' => $variants->filter(fn ($v) => $v['color'])->mapWithKeys(fn ($v) => [$v['color'] => $v['swatch']])->all(), 'sizes' => $variants->pluck('size')->filter()->unique()->values(), 'variants' => $variants, 'collections' => $product->collections->pluck('slug')->values(), 'featured' => $product->is_featured, 'images' => $images, 'short_description' => str($product->description)->stripTags()->limit(150)->toString(), 'description' => $product->description, 'care' => $product->shipping_information ?: 'Follow the care instructions on the product label.'];
+    }
+
+    private function categoryData(Category $category): array
+    {
+        $fallback = 'assets/catalog/category-accessories.webp';
+        return ['slug' => $category->slug, 'name' => $category->name, 'group' => $category->group_name ?: ($category->parent?->name ?: 'Shop'), 'description' => $category->description ?: '', 'image' => $this->assetUrl($category->main_image ?: $fallback), 'hero' => $this->assetUrl($category->hero_image ?: $category->banner ?: $category->main_image ?: $fallback), 'banner' => $this->assetUrl($category->banner ?: $category->hero_image ?: $category->main_image ?: $fallback), 'featured' => $category->is_featured, 'sections' => $category->children()->where('is_active', true)->pluck('name')->values(), 'url' => route('category.show', $category->slug)];
+    }
+
+    private function collectionData(Collection $collection): array { return ['slug' => $collection->slug, 'name' => $collection->name, 'description' => $collection->description ?: '', 'image' => $this->assetUrl($collection->image ?: 'assets/catalog/banner-accessories.webp')]; }
+    private function assetUrl(?string $path): ?string { return ! $path ? null : (str_starts_with($path, 'http') ? $path : asset(ltrim($path, '/'))); }
+}

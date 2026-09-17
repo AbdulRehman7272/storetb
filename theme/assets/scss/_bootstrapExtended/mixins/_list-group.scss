@@ -1,0 +1,39 @@
+// List groups
+// *******************************************************************************
+
+// Basic List groups
+@mixin conca-list-group-item-variant($parent, $background, $color: null) {
+
+
+
+    $hover-color: color-contrast($background);
+    $border-color:  shade-color($background, 15%, $white);
+    $background-color: if($hover-color == $color-contrast-light, shade-color($background, $btn-label-bg-shade-amount, $white), tint-color($background, $btn-label-bg-tint-amount, $white) );
+
+    $color: $background;
+    $hover-background: $background;
+
+    #{$parent} {
+        border-color: $border-color;
+        background-color: rgba($color: $background, $alpha: .1);
+        border-color: $border-color;
+        color: $color;
+    }
+
+  a#{$parent},
+  button#{$parent} {
+    color: $color;
+    &:hover,
+    &:focus {
+      border-color: $background;
+      background-color: $hover-background;
+      color: $hover-color;
+    }
+
+    &.active {
+      border-color: $background !important;
+      background-color: $background !important;
+      color: color-contrast($background) !important;
+    }
+  }
+}

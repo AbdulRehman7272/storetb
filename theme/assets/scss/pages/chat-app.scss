@@ -1,0 +1,218 @@
+.chat-list-item{
+    padding: 10px;
+    transition: all 0.3s ease-in-out;
+    border-radius: 10px;
+
+    &:hover{
+        background-color: var(--clr-bg-gray-2);
+        cursor: pointer;
+    }
+
+    &.active{
+        background-color: var(--bs-primary);
+        
+        & .chat-username,
+        & .chat-time,
+        & .chat-prev-msg,
+        & .chat-prev-msg i,
+        & .chat-prev-msg b{
+            color: #fff !important;
+        }
+    }
+
+    & .chat-time{
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text-custom-body-2);
+    }
+
+    & .chat-username,
+    & .chat-time,
+    & .chat-prev-msg,
+    & .chat-prev-msg i,
+    & .chat-prev-msg b{
+        transition: all 0.3s ease-in-out;
+    }
+}
+
+.chat-sidebar-body{
+    height: calc(100vh - 21rem);
+}
+
+.chat-conversation-body{
+    height: calc(100vh - 25rem);
+}
+
+.chat-conversation-wrapper{
+    border: 1px solid rgba(#57575A, .1);
+    border-radius: 10px 10px;
+}
+.chat-conversation-header{
+    border-radius: 10px 10px 0 0;
+    padding: 14px 20px;
+}
+
+.chat-conversation-msg{
+    &:not(:last-child){
+        margin-bottom: 20px;
+    }
+}
+
+.chat-conversation-msg-text-wrapper{
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 5px;
+}
+
+.chat-conversation-msg-text{
+    padding: 10px 15px;
+    display: inline-block;
+    width: fit-content;
+    
+    &:not(:last-child){
+        margin-bottom: 3px;
+    }
+
+    &:only-child{
+        border-radius: 12px;
+    }
+    &:first-child{
+        border-radius: 12px 12px 12px 2px;
+    }
+    &:last-child{
+        border-radius: 2px 12px 12px 12px;
+    }
+    &:not(:first-child):not(:last-child){
+        border-radius: 4px;
+    }
+}
+
+.chat-conversation-msg-content-meta{
+    & span{
+        font-size: 12px;
+        color: #7D7D7E;
+    }
+
+    & .chat-view-status{
+        &.send{
+            color: #A599FF;
+        }
+        &.viewed{
+            color: #38CA7A;
+        }
+    }
+}
+
+.chat-conversation-msg.msg-right{
+    & .chat-conversation-msg-text{
+        background-color: var(--bs-primary) !important;
+        color: #fff !important;
+        margin-left: auto;
+        &:first-child{
+            border-radius: 12px 12px 2px 12px;
+        }
+        &:last-child{
+            border-radius: 12px 2px 12px 12px;
+        }
+        &:only-child{
+            border-radius: 12px;
+        }        
+    }
+
+    & .chat-conversation-msg-content-meta{
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 6px;
+    }
+}
+
+.chat-conversation-input{
+    position: relative;
+    & input{
+        width: 100%;
+        height: 46px;
+        outline: 0;
+        border-radius: 60px;
+        padding-left: 56px;
+        padding-right: 46px;
+        transition: all 0.3s ease-in-out;
+
+    }
+}
+
+.chat-conversation-send-btn{
+    position: absolute;
+    top: 50%;
+    right: 3px;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-primary);
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+
+}
+
+.chat-conversation-emoji{
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-heading-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+
+    &:hover{
+        color: var(--bs-primary);
+    }
+}
+
+.app-chat-backdrop{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0,0,0,.5);
+    z-index: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease-in-out;
+    border-radius: 10px;
+
+    &.active{
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+@media (max-width: 1199px) {
+    .app-chat-sidebar-main{
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        width: 342px;
+        background-color: var(--bs-card-bg);
+        z-index: 1;
+        transform: translateX(calc(-100% - 2rem));
+        transition: all 0.3s ease-in-out;
+
+        &.chat-opened{
+            transform: translateX(0);
+        }
+    }
+}

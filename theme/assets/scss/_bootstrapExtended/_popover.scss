@@ -1,0 +1,9 @@
+.popover {
+    box-shadow: $popover-box-shadow;
+}
+
+
+
+@each $color, $value in $theme-colors {
+    @include conca-popover-variants('.popover-#{$color}', $value);
+}

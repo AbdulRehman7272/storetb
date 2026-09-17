@@ -1,0 +1,124 @@
+
+@import '../../node_modules/toastr/toastr.scss';
+@import '../../src/assets/scss/_bootstrapExtended/include';
+@import '../../src/assets/scss/_bootstrapExtended/variables-color.scss';
+@import '../../src/assets/scss/_bootstrapExtended/variables.scss';
+@import '../../node_modules/bootstrap/scss/forms/form-control';
+@import '../../node_modules/bootstrap/scss/buttons';
+@import '../../src/assets/scss/_bootstrapExtended/buttons';
+
+$escaped-characters: (
+  ("<", "%3c"),
+  (">", "%3e"),
+  ("#", "%23"),
+  ("(", "%28"),
+  (")", "%29"),
+) !default;
+
+$infoIcon : url("data:image/svg+xml,<svg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16Z' fill='#{$info}' /><path d='M8 11.2V8' stroke='#fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /><path d='M8 4.80005H8.00667' stroke='#fff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /></svg>");
+
+$warningIcon : url("data:image/svg+xml, <svg width='20' height='18' viewBox='0 0 20 18' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.56182 13.1787L1.56174 13.1786L1.55573 13.1891C1.35653 13.534 1.25112 13.9251 1.25001 14.3235C1.24889 14.7219 1.3521 15.1136 1.54937 15.4596C1.74664 15.8057 2.03108 16.0941 2.37441 16.2961C2.71774 16.4982 3.10798 16.6068 3.50632 16.6111L3.50632 16.6112H3.51456H16.4854V16.6112L16.4937 16.6111C16.892 16.6068 17.2823 16.4982 17.6256 16.2961C17.9689 16.0941 18.2534 15.8057 18.4506 15.4596C18.6479 15.1136 18.7511 14.7219 18.75 14.3235C18.7489 13.9251 18.6435 13.534 18.4443 13.1891L18.4444 13.189L18.4382 13.1787L11.9527 2.35177L11.9527 2.35176L11.9506 2.3482C11.7472 2.01295 11.4609 1.73578 11.1192 1.54342C10.7776 1.35106 10.3921 1.25 10 1.25C9.6079 1.25 9.22242 1.35106 8.88075 1.54342C8.53909 1.73578 8.25276 2.01295 8.04941 2.3482L8.69066 2.73717L8.04726 2.35177L1.56182 13.1787Z' fill='#{$warning}' stroke='#{$warning}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /><path d='M10 6.67282V9.7356' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' /><path d='M10 12.7984H10.0077' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' /></svg>");
+
+$successIcon : url("data:image/svg+xml, <svg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M10 18.75C14.8325 18.75 18.75 14.8325 18.75 10C18.75 5.16751 14.8325 1.25 10 1.25C5.16751 1.25 1.25 5.16751 1.25 10C1.25 14.8325 5.16751 18.75 10 18.75Z' fill='#{$success}' stroke='#{$success}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /><path d='M13 8L9.1 12.411L7 10.311' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /></svg>");
+
+$errorIcon : url("data:image/svg+xml, <svg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M10 18.75C14.8325 18.75 18.75 14.8325 18.75 10C18.75 5.16751 14.8325 1.25 10 1.25C5.16751 1.25 1.25 5.16751 1.25 10C1.25 14.8325 5.16751 18.75 10 18.75Z' fill='#{$danger}' stroke='#{$danger}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /><path d='M12.3996 7.59998L7.59961 12.4' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /><path d='M7.59961 7.59998L12.3996 12.4' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' /></svg>");
+
+$itemShadow : 0 4px 6px -1px rgba($black, .08), 0px 2px 4px -1px rgba($black, .06);
+
+.toast-title {
+    font-weight: bold;
+}
+  .toast-message {
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
+  }
+  .toast-message a,
+  .toast-message label {
+    color: #ffffff;
+  }
+  .toast-message a:hover {
+    color: #cccccc;
+    text-decoration: none;
+  }
+  .toast-close-button {
+    position: absolute;
+    right: 15px;
+    top: 7px;
+    font-size: 20px;
+    font-weight: 400;
+    color: #fff;
+    -webkit-text-shadow: none;
+    text-shadow: none;
+    opacity: .7;
+  }
+  .toast-close-button:hover,
+  .toast-close-button:focus {
+    color: $black;
+    opacity: 1;
+  }
+
+
+  #toast-container > div {
+    margin: 0 0 6px;
+    padding: 13px 40px 15px 55px;
+    border-radius: .375rem;
+    box-shadow: none;
+    color: var(--bs-body-color);
+    font-weight: 500;
+    opacity: 1;
+    max-width: 100%;
+    background-size: 20px;
+    background-repeat: no-repeat;
+    background-position: 1.25rem 14px;
+    border: 0;
+  }
+
+  // #toast-container > div:hover {
+  //   box-shadow: 0 10px 15px -3px rgba($black, .1), 0px 4px 6px 0px rgba($black, .05);
+  // }
+  #toast-container > .toast-info {
+    color: #fff;
+  }
+  #toast-container > .toast-error {
+    color: #fff;
+  }
+  #toast-container > .toast-success {
+    color: #fff;
+  }
+  #toast-container > .toast-warning {
+    color: #fff;
+  }
+
+  .toast {
+    background-color: #fff;
+
+    & input.input-small{
+      @extend .form-control;
+      @extend .form-control-sm;
+    }
+
+    & #okBtn.btn.btn-primary{
+      @extend .btn-xs;
+    }
+    & #surpriseBtn.btn{
+      @extend .btn-secondary;
+      @extend .btn-xs;
+    }
+
+    &.toast-success {
+      background-color: $success !important;
+      color: #fff;
+    }
+    &.toast-error {
+      background-color: $danger !important;
+      color: #fff;
+    }
+    &.toast-info {
+      background-color: $info;
+      color: #fff;
+    }
+    &.toast-warning {
+      background-color: $warning !important;
+      color: #fff;
+    }
+  }

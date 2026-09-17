@@ -1,0 +1,131 @@
+//
+// Base styles
+//
+
+.accordion {
+    
+    --#{$prefix}accordion-active-color: #{$primary};
+    --#{$prefix}accordion-active-bg: #{$white};
+  }
+  
+  .accordion-button {
+    
+  
+    &:not(.collapsed) {
+      color: var(--#{$prefix}accordion-active-color);
+      background-color: var(--#{$prefix}accordion-active-bg);
+      box-shadow: inset 0 calc(-1 * var(--#{$prefix}accordion-border-width)) 0 var(--bs-border-color);
+  
+      &::after {
+        background-image: var(--#{$prefix}accordion-btn-active-icon);
+        transform: var(--#{$prefix}accordion-btn-icon-transform);
+      }
+    }
+  }
+  
+  
+  .accordion-item {
+    color: var(--#{$prefix}accordion-color);
+    background-color: var(--#{$prefix}accordion-bg);
+    border: var(--#{$prefix}accordion-border-width) solid var(--#{$prefix}accordion-border-color);
+  
+    &:first-of-type {
+      @include border-top-radius(var(--#{$prefix}accordion-border-radius));
+  
+      > .accordion-header .accordion-button {
+        @include border-top-radius(var(--#{$prefix}accordion-inner-border-radius));
+      }
+    }
+  
+    &:not(:first-of-type) {
+      border-top: 0;
+    }
+  
+    // Only set a border-radius on the last item if the accordion is collapsed
+    &:last-of-type {
+      @include border-bottom-radius(var(--#{$prefix}accordion-border-radius));
+  
+      > .accordion-header .accordion-button {
+        &.collapsed {
+          @include border-bottom-radius(var(--#{$prefix}accordion-inner-border-radius));
+        }
+      }
+  
+      > .accordion-collapse {
+        @include border-bottom-radius(var(--#{$prefix}accordion-border-radius));
+      }
+    }
+  }
+  
+  .accordion-body {
+    padding: var(--#{$prefix}accordion-body-padding-y) var(--#{$prefix}accordion-body-padding-x);
+  }
+
+
+// shadow style
+
+.accordion-shadow{
+    & .accordion-item{
+        box-shadow: 0 10px 15px -3px rgba($black, .1);
+        border: 0;
+
+        @include border-bottom-radius(var(--#{$prefix}accordion-border-radius));
+        @include border-top-radius(var(--#{$prefix}accordion-border-radius));
+    
+        > .accordion-header .accordion-button {
+            &.collapsed {
+                @include border-bottom-radius(var(--#{$prefix}accordion-inner-border-radius));
+                @include border-top-radius(var(--#{$prefix}accordion-inner-border-radius));
+            }
+        }
+    
+        > .accordion-collapse {
+            @include border-bottom-radius(var(--#{$prefix}accordion-border-radius));
+        }
+        
+        
+        &:last-of-type,
+        &:first-of-type {
+            @include border-bottom-radius(var(--#{$prefix}accordion-border-radius));
+            @include border-top-radius(var(--#{$prefix}accordion-border-radius));
+        
+            > .accordion-header .accordion-button {
+                &.collapsed {
+                    @include border-bottom-radius(var(--#{$prefix}accordion-inner-border-radius));
+                    @include border-top-radius(var(--#{$prefix}accordion-inner-border-radius));
+                }
+            }
+        
+            > .accordion-collapse {
+                @include border-bottom-radius(var(--#{$prefix}accordion-border-radius));
+            }
+        }
+
+        &:not(:last-child){
+            margin-bottom: 10px;
+        }
+
+
+        & .accordion-button{
+
+            &:not(.collapsed){
+                @include border-top-radius(var(--#{$prefix}accordion-border-radius));
+            }
+        }
+    }
+}
+
+.accordion.accordion-px-0{
+    --#{$prefix}accordion-btn-padding-x: 0;
+
+    & .accordion-body{
+        padding: var(--#{$prefix}accordion-body-padding-y) var(--#{$prefix}accordion-btn-padding-x);
+    }
+}
+
+@include dir-rtl {
+  .accordion-button::after {
+    margin-left: initial;
+    margin-right: auto;
+  }
+}

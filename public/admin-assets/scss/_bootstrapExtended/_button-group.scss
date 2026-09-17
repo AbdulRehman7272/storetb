@@ -1,0 +1,56 @@
+.btn-group-xs > .btn {
+    @extend .btn-xs;
+  }
+.btn-group-sm > .btn {
+    @extend .btn-sm;
+  }
+  
+  .btn-group-lg > .btn {
+    @extend .btn-lg;
+  }
+  .btn-group-xl > .btn {
+    @extend .btn-xl;
+  }
+
+.btn-group .btn[class] {
+  @include rtl {
+    border-radius: 0.375rem;
+  }
+}
+
+@include dir-rtl {
+
+ .btn-group {
+    > .btn:not(:first-child),
+    > .btn-group:not(:first-child) {
+      margin-left: 0;
+      margin-right: calc(#{$btn-border-width} * -1);
+    }
+
+    > .btn:not(:last-child):not(.dropdown-toggle),
+    > .btn-group:not(:last-child) > .btn {
+      @include border-start-radius(0);
+    }
+
+    > .btn:nth-child(n + 3),
+    > :not(.btn-check) + .btn,
+    > .btn-group:not(:first-child) > .btn {
+      @include border-end-radius(0);
+    }
+  }
+
+  .btn-group-vertical {
+    > .btn:not(:last-child):not(.dropdown-toggle),
+    > .btn-group:not(:last-child) > .btn {
+      @include border-bottom-radius(0);
+    }
+
+    > .btn ~ .btn,
+    > .btn-group:not(:first-child) > .btn {
+      @include border-top-radius(0);
+    }
+  }
+
+}
+
+

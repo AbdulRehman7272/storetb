@@ -1,0 +1,46 @@
+@mixin conca-badge-variants($parent, $color) {
+    $background: $color;
+    $color: color-contrast($background);
+
+    #{$parent}{
+        color: $color;
+        border-color: $background;
+        @include gradient-bg($background);
+    }
+}
+
+@mixin conca-badge-outline-variants($parent, $color) {
+    $background: $color;
+    $color: $color;
+    $border-color : $background;
+
+    #{$parent}{
+        color: $color;
+        background-color: transparent;
+        border-color: rgba($color: $border-color, $alpha: .1);
+    }
+}
+
+@mixin conca-badge-label-variants($parent, $color) {
+    $background: $color;
+    $color: $color;
+
+    $label-background: if(color-contrast($background) == $color-contrast-light, shade-color($background, $btn-label-bg-shade-amount, $white), tint-color($background, $btn-label-bg-tint-amount, $white) );
+    
+
+    #{$parent}{
+        color: $color;
+        background-color: rgba($color: $color, $alpha: .1);
+        border: none;
+    }
+}
+
+
+@mixin conca-badge-sizes($parent, $size){
+    #{$parent}{
+        height: $size;
+        width: $size;
+        font-size: calc($size / 2);
+        padding: 0;
+    }
+}

@@ -1,0 +1,94 @@
+.pure-img-uploader-thumb{
+    & img{
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid var(--bs-border-color);
+    }
+}
+
+.product-gallery-single{
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.product-gallery-remove-btn{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #FF3B3B;
+    color: #FF3B3B;
+    border-radius: 6px;
+    transition: all .3s ease-in-out;
+    
+    &:hover{
+        background-color: #FF3B3B;
+        color: #fff;
+    }
+}
+
+.product-gallery-uploader-container{
+    background-color: #F6F6F9;
+    border: 1px dashed #E4E6FC;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .3s ease-in-out;
+    width: 100%;
+    height: 100%;
+}
+
+
+.product-gallery-uploader-label{
+    font-size: 14px;
+    background-color: #fff;
+    border: 1px solid #E5E7EB;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 6px;
+}
+
+.product-price-others-tab{
+    border: 1px solid #E5E5EA;
+    
+    & .nav{
+        background-color: #F6F6F9;
+        min-width: 280px;
+
+        @media (max-width: 767px){
+            width: 100%;
+            min-width: 100%;
+        }
+        
+        & button{
+            background-color: transparent;
+            text-align: left;
+            border-radius: 0;
+            padding: 16px 26px;
+            border: none;
+            border-bottom: 1px solid #E5E5EA;
+            display: inline-flex;
+            align-items: center;
+            justify-content: start;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            &:last-child{
+                border-bottom: none;
+            }
+            &.active{
+                background-color: #fff;
+                color: var(--bs-primary);
+            }
+        }
+    }
+}

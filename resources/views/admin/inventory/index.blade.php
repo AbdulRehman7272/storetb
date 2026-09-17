@@ -1,0 +1,5 @@
+@extends('layouts.admin')
+@section('title', 'Inventory')
+@section('content')
+<section class="panel"><h2>Low Stock</h2>@foreach($lowStock as $product)<div class="line-item"><span>{{ $product->name }}</span><strong>{{ $product->stock }}</strong></div>@endforeach</section><form class="filters"><input name="search" value="{{ request('search') }}" placeholder="Reference"><input name="type" value="{{ request('type') }}" placeholder="Type"><button class="btn-small">Filter</button></form><table class="table table-sm"><tr><th>Date</th><th>Product</th><th>Type</th><th>Previous</th><th>Change</th><th>New</th><th>Reason</th></tr>@foreach($movements as $movement)<tr><td>{{ $movement->created_at->format('Y-m-d H:i') }}</td><td>{{ $movement->product?->name }}</td><td>{{ $movement->type }}</td><td>{{ $movement->previous_quantity }}</td><td>{{ $movement->change_quantity }}</td><td>{{ $movement->new_quantity }}</td><td>{{ $movement->reason }}</td></tr>@endforeach</table>{{ $movements->links() }}
+@endsection

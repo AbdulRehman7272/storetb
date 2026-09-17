@@ -1,0 +1,29 @@
+// Tooltips
+// *******************************************************************************
+
+@mixin conca-tooltip-variant($parent, $background, $color: null) {
+  #{$parent} {
+    .tooltip-inner {
+      background: $background;
+      color: color-contrast($background);
+    }
+
+    &.bs-tooltip-auto {
+      &[data-popper-placement='top'] .tooltip-arrow::before {
+        border-top-color: $background;
+      }
+
+      &[data-popper-placement='left'] .tooltip-arrow::before {
+        border-left-color: $background;
+      }
+
+      &[data-popper-placement='bottom'] .tooltip-arrow::before {
+        border-bottom-color: $background;
+      }
+
+      &[data-popper-placement='right'] .tooltip-arrow::before {
+        border-right-color: $background;
+      }
+    }
+  }
+}

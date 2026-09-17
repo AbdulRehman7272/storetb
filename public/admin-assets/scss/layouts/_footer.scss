@@ -1,0 +1,11 @@
+.app-footer{
+    background-color: var(--bs-card-bg);
+}
+.app-sidebar-footer{
+    border-top: 1px solid var(--bs-border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 12px 26px
+}

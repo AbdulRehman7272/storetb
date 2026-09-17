@@ -1,0 +1,5 @@
+
+
+@each $color, $value in $theme-colors {
+    @include conca-tooltip-variant('.tooltip-#{$color}',  $value)
+}

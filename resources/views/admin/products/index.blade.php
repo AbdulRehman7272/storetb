@@ -1,0 +1,10 @@
+@extends('layouts.admin')
+@section('title', 'Products')
+@section('content')
+<div class="toolbar"><a class="btn" href="{{ route('admin.products.create') }}">Quick Add</a><a class="btn secondary" href="{{ route('admin.products.create', ['mode'=>'detailed']) }}">Detailed Product</a></div>
+<form class="filters" method="get"><input name="search" value="{{ request('search') }}" placeholder="Name, SKU, barcode"><select name="category_id"><option value="">Category</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected(request('category_id')==$c->id)>{{ $c->name }}</option>@endforeach</select><select name="status"><option value="">Status</option>@foreach(['published','draft','scheduled','archived'] as $s)<option @selected(request('status')==$s)>{{ $s }}</option>@endforeach</select><select name="stock"><option value="">Stock</option><option value="in">In stock</option><option value="low">Low</option><option value="out">Out</option></select><button class="btn-small">Filter</button><a href="{{ route('admin.products.index') }}">Reset</a></form>
+<form method="post" action="{{ route('admin.products.bulk') }}">@csrf
+<div class="table-responsive"><table class="table table-sm align-middle"><tr><th></th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr>@foreach($products as $product)<tr><td><input type="checkbox" name="ids[]" value="{{ $product->id }}"></td><td><img class="thumb" src="{{ $product->imageUrl() }}"> {{ $product->name }}<br><small>{{ $product->sku }}</small></td><td>{{ $product->category?->name }}</td><td>{{ number_format($product->regular_price) }}</td><td>{{ $product->stock }}</td><td>{{ $product->status }}</td><td><a href="{{ route('admin.products.edit',$product) }}">Edit</a></td></tr>@endforeach</table></div>
+<div class="bulk"><select name="action"><option value="publish">Publish</option><option value="unpublish">Unpublish</option><option value="archive">Archive</option></select><button class="btn-small">Apply</button></div>
+</form>{{ $products->links() }}
+@endsection

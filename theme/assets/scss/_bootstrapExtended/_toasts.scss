@@ -1,0 +1,7 @@
+.toast-header .btn-close {
+
+    @include rtl {
+        margin-left: calc(-0.5 * var(--bs-toast-padding-x));
+        margin-right: var(--bs-toast-padding-x);
+    }
+}

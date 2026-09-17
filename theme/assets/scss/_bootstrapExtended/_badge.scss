@@ -1,0 +1,118 @@
+.badge {
+    border: $badge-border-width solid $badge-border-color;
+    &:is([class*="text-bg"]) {
+        border-width: 0;
+    }
+}
+
+.badge.badge{
+    &-pull-top-left{
+        position: absolute;
+        top: 0;
+        @if $enable-rtl {
+            right: 0;
+            transform: translate(41%, -40%);
+        }
+        @else{
+            left: 0;
+            transform: translate(-41%, -40%);
+        }
+    }
+    &-pull-top-right{
+        position: absolute;
+        top: 0;
+        @if $enable-rtl {
+            left: 0;
+            transform: translate(-41%, -40%);
+        }
+        @else{
+            right: 0;
+            transform: translate(41%, -40%);
+        }
+    }
+    &-pull-bottom-left{
+        position: absolute;
+        bottom: 0;
+        @if $enable-rtl {
+            right: 0;
+            transform: translate(41%, 40%);
+        }
+        @else{
+            left: 0;
+            transform: translate(-41%, 40%);
+        }
+    }
+    &-pull-bottom-right{
+        position: absolute;
+        bottom: 0;
+        @if $enable-rtl {
+            left: 0;
+            transform: translate(-41%, 40%);
+        }
+        @else{
+            right: 0;
+            transform: translate(41%, 40%);
+        }
+    }
+}
+
+
+.badge-icon {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0.35rem;
+	height: 1.5rem;
+	width: 1.5rem;
+	font-size: 0.812rem;
+}
+
+.badge-center{
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border: 0;
+    padding: 0;
+    height: $badge-center-size;
+    width: $badge-center-size;
+    font-size: calc($badge-center-size / 2);
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.badge.badge-dot{
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    width: .5rem;
+    height: .5rem;
+    border-radius: 100%;
+    border: 0;
+    &:empty{
+        display: inline-block !important;
+    }
+}
+
+.btn{
+    .badge.badge-dot:empty{
+        display: inline-block !important;
+        width: 1rem;
+        height: 1rem;
+        border: 3px solid var(--bs-card-bg);
+
+    }
+}
+
+.badge.badge-notification{
+    --bs-badge-padding-y : .125rem;
+    --bs-badge-padding-x: .4rem;
+}
+
+@include conca-badge-sizes('.badge-center-lg', $badge-center-size-lg);
+@include conca-badge-sizes('.badge-center-xl', $badge-center-size-xl);
+
+@each $color, $value in $theme-colors {
+    @include conca-badge-variants('.badge-#{$color}', $value);
+    @include conca-badge-outline-variants('.badge-outline-#{$color}', $value);
+    @include conca-badge-label-variants('.badge-label-#{$color}', $value);
+}
+

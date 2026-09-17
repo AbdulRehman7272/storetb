@@ -1,0 +1,6 @@
+.navbar-brand {
+    @include rtl{
+        margin-left: var(--bs-navbar-brand-margin-end);
+        margin-right: 0;
+    }
+}

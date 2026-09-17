@@ -1,0 +1,29 @@
+.table {
+    > :not(caption)  > tr > th {
+        &:first-child {
+            border-top-left-radius: $table-border-radius;
+        }
+        &:last-child {
+            border-top-right-radius: $table-border-radius;
+        }
+    }
+
+    & > thead.table-light > tr > th {
+        border: 0;
+    }
+
+    & > :not(caption) > * > * {
+        vertical-align: middle;
+    }
+    &.table-hover .btn-icon:hover {
+        background: $card-bg !important;
+        
+    }
+    &.table-layout-fixed {
+        table-layout: fixed;
+
+        & td{
+            width: max-content;
+        }
+    }
+}

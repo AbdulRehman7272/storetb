@@ -1,0 +1,36 @@
+.pure-slideable-tab-wrapper-style{
+    padding: 4px;
+    border-radius: 8px;
+    background-color: var(--clr-bg-gray-secondary);
+    & .pure-slide-tab-bar{
+        top: 5px;
+        position: absolute;
+        height: calc(100% - 8px);
+        background-color: var(--bs-white);
+        border-radius: 6px;
+        box-shadow: 0 2px 4px 0 rgba(25, 24, 34, 0.2);
+    }
+
+    & .pure-slide-tab-item{
+        color: var(--clr-text-custom-paragraph);
+        border: 0;
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        &.active{
+            color: var(--bs-black);
+        }
+
+        &:hover{
+            background-color: initial;
+        }
+
+        &:focus-visible{
+            outline: 0;
+            box-shadow: none;
+        }
+    }
+}

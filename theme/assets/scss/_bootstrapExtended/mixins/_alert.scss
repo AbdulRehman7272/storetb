@@ -1,0 +1,94 @@
+@mixin conca-alert-variant($parent, $background) {
+    $color: $background;
+
+    // for alert-btn
+    $hover-background: if( color-contrast($background) == $color-contrast-light, shade-color($background, $btn-hover-bg-shade-amount), tint-color($background, $btn-hover-bg-tint-amount));
+    $hover-color: color-contrast($hover-background);
+    #{$parent} {
+      color: $color;
+      background-color: rgba($color: $background, $alpha: .1);
+      box-shadow: inset 2px 0 0 0 $background;
+      .btn-close {
+        background-image: str-replace(str-replace($btn-close-bg, '#{$btn-close-color}', $color), '#', '%23');
+        &:focus{
+          box-shadow: none;
+        }
+      }
+  
+      .alert-link {
+        color: $color;
+      }
+
+      .alert-btn{
+        background-color: $background;
+        color: color-contrast($background);
+        box-shadow: 0 1px 2px 0 rgba($color: tint-color($background, 20%), $alpha: .25),  0 0 1px 0 tint-color($background, 20%);
+
+        &:hover{
+          color: $hover-color !important;
+          @include gradient-bg($hover-background !important);
+          box-shadow: none;
+         
+        }
+      }
+
+      & hr{
+        border-color: $color;
+      }
+    }
+  
+  }
+
+@mixin conca-alert-fill-variant($parent, $background) {
+    $color: color-contrast($background);
+
+    #{$parent} {
+      color: $color;
+      border: 1px solid $background;
+      background-color: $background;
+      .btn-close {
+        box-shadow: none;
+        background-image: str-replace(str-replace($btn-close-bg, '#{$btn-close-color}', $color), '#', '%23');
+        &:focus{
+          box-shadow: none;
+        }
+      }
+  
+      .alert-link {
+        color: $color;
+      }
+      & hr{
+        border-color: $color;
+      }
+    }
+  
+  }
+
+@mixin conca-alert-outline-variant($parent, $background) {
+   
+    $color: $background;
+    $alert-background: shade-color($background, 95%, $white);
+    #{$parent} {
+      color: $color;
+      border: 1px solid $color;
+      background-color: rgba($color: $background, $alpha: .1);
+      box-shadow: inset 2px 0 0 0 $background;
+      .btn-close {
+        box-shadow: none;
+        background-image: str-replace(str-replace($btn-close-bg, '#{$btn-close-color}', $color), '#', '%23');
+        &:focus{
+          box-shadow: none;
+        }
+      }
+  
+      .alert-link {
+        color: $color;
+      }
+
+
+      & hr{
+        border-color: $color;
+      }
+    }
+  
+  }

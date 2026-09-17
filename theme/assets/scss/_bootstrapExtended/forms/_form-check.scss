@@ -1,0 +1,156 @@
+
+.form-check-lg{
+    @if $enable-rtl {
+        padding-right: $form-check-padding-start-lg;
+    } @else {
+        padding-left: $form-check-padding-start-lg;
+    }
+    .form-check-input{
+        margin-top: 0;
+        width: $form-check-input-width-lg;
+        height: $form-check-input-width-lg;
+        margin-left: $form-check-padding-start-lg * -1;
+        @if $enable-rtl {
+            margin-right: $form-check-padding-start-lg * -1;
+        }
+
+        &:checked {
+        
+            &[type="checkbox"] {
+              @if $enable-gradients {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-input-checked-bg-image-lg)}, var(--#{$prefix}gradient);
+              } @else {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-input-checked-bg-image-lg)};
+              }
+            }
+        
+            &[type="radio"] {
+              @if $enable-gradients {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-radio-checked-bg-image-lg)}, var(--#{$prefix}gradient);
+              } @else {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-radio-checked-bg-image-lg)};
+              }
+            }
+        }
+    }
+
+    .form-check-label{
+        font-size: $form-check-label-font-size-lg;
+    }
+}
+
+.form-check-xl{
+    
+    @if $enable-rtl {
+        padding-right: $form-check-padding-start-xl;
+    }
+    @else {
+        padding-left: $form-check-padding-start-xl;
+    }
+    .form-check-input{
+        margin-top: -1px;
+        width: $form-check-input-width-xl;
+        height: $form-check-input-width-xl;
+        
+        @if $enable-rtl {
+            margin-right: $form-check-padding-start-xl * -1;
+        }
+        @else {
+          margin-left: $form-check-padding-start-xl * -1;
+        }
+
+        &:checked {
+        
+            &[type="checkbox"] {
+              @if $enable-gradients {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-input-checked-bg-image-xl)}, var(--#{$prefix}gradient);
+              } @else {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-input-checked-bg-image-xl)};
+              }
+            }
+        
+            &[type="radio"] {
+              @if $enable-gradients {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-radio-checked-bg-image-xl)}, var(--#{$prefix}gradient);
+              } @else {
+                --#{$prefix}form-check-bg-image: #{escape-svg($form-check-radio-checked-bg-image-xl)};
+              }
+            }
+        }
+    }
+
+    .form-check-label{
+        font-size: $form-check-label-font-size-xl;
+    }
+}
+
+
+.form-check-input{
+    margin-top: 1px;
+    background-size: auto;
+    cursor: $form-check-label-cursor;
+}
+
+.form-switch {
+
+    .form-check-input {
+      background-color: $form-switch-bg-color;
+      height: $form-switch-height;
+
+      &:active{
+        background-color: $form-switch-active-bg-color;
+        filter: initial;
+      }
+      &:checked{
+        background-color: $form-switch-checked-bg-color;
+      }
+
+      &:focus{
+        background-color: $form-switch-focus-bg-color;
+
+        &:checked{
+          background-color: $form-switch-checked-bg-color;
+        }
+      }
+    }
+}
+
+// RTL Style
+@include dir-rtl {
+  .form-check {
+    padding-left: 0;
+    padding-right: $form-check-padding-start;
+  }
+  .form-check .form-check-input {
+    float: right;
+    margin-left: 0;
+    margin-right: $form-check-padding-start * -1;
+  }
+  .form-switch {
+    padding-left: 0;
+    padding-right: $form-switch-padding-start;
+    .form-check-input {
+      margin-left: 0;
+      margin-right: $form-switch-padding-start * -1;
+      background-position: right center;
+      &:checked {
+        background-position: $form-switch-checked-bg-position-rtl;
+      }
+    }
+  }
+  .form-check-inline {
+    margin-right: 0;
+    margin-left: $form-check-inline-margin-end;
+  }
+}
+
+
+@each $color, $value in $theme-colors {
+    @include conca-form-check-variant('.form-check-#{$color}', $value);
+    @include conca-form-switch-variant('.form-switch-#{$color}', $value);
+}
+
+.form-check-label a,
+.form-check-label span { 
+  display: inline-block;
+}

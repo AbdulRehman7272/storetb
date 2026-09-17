@@ -1,0 +1,20 @@
+.pure-modal-title{
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--bs-heading-color);
+}
+
+.pure-btn-close{
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--bs-clr-custom-paragraph);
+    
+    &:hover{
+        background-color: var(--clr-bg-gray);
+    }
+}

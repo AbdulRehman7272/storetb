@@ -1,0 +1,13 @@
+.password-eye{
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle{
+    &:hover{
+        cursor: pointer;
+    }
+}

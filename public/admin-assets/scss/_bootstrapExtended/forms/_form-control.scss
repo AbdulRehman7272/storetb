@@ -1,0 +1,110 @@
+// Form control
+// *******************************************************************************
+
+
+.form-control {
+    box-shadow: none;
+    transition: border-color .3s ease-in-out,box-shadow .3s ease-in-out, color .3s ease-in-out, background-color .3s ease-in-out;
+
+    &.form-code-input{
+      padding: 4px 4px;
+      font-size: 150%;
+      height: 50px;
+      width: 50px;
+
+      @media (max-width: '575px'){
+        width: 40px;
+        height: 40px;
+        font-size: 120%;
+      }
+
+    }
+    
+    &[type="file"] {
+      overflow: hidden; // prevent pseudo element button overlap
+  
+      &:not(:disabled):not([readonly]) {
+        cursor: pointer;
+      }
+    }
+
+    &[type="color"]{
+      width: 100%;
+      padding: $spacer * .5;
+    }
+  
+    // Customize the `:focus` state to imitate native WebKit styles.
+    &:focus {
+      color: $input-focus-color;
+      background-color: $input-focus-bg;
+      border-color: $input-focus-border-color;
+      outline: 0;
+      box-shadow: 0px 0px 0px 3px rgba($input-focus-border-color,.14);
+      
+    }
+  
+  
+    // Placeholder
+    &::placeholder {
+      color: $input-placeholder-color;
+      opacity: 1;
+    }
+  
+    // Disabled inputs
+    //
+    // HTML5 says that controls under a fieldset > legend:first-child won't be
+    // disabled if the fieldset is disabled. Due to implementation difficulty, we
+    // don't honor that edge case; we style them as disabled anyway.
+    &:disabled {
+      color: $input-disabled-color;
+      background-color: $input-disabled-bg;
+      border-color: $input-disabled-border-color;
+      // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655.
+      opacity: 1;
+    }
+  
+    // File input buttons theming
+    &::file-selector-button {
+      padding: $input-padding-y $input-padding-x;
+      margin: (-$input-padding-y) (-$input-padding-x);
+      margin-inline-end: $input-padding-x;
+      color: $form-file-button-color;
+      @include gradient-bg($form-file-button-bg);
+      pointer-events: none;
+      border-color: inherit;
+      border-style: solid;
+      border-width: 0;
+      border-inline-end-width: $input-border-width;
+      border-radius: 0; // stylelint-disable-line property-disallowed-list
+      @include transition($btn-transition);
+    }
+  
+    &:hover:not(:disabled):not([readonly])::file-selector-button {
+      background-color: $form-file-button-hover-bg;
+    }
+  }
+
+  .form-control-xl {
+    min-height: $input-height-xl;
+    padding: $input-padding-y-xl $input-padding-x-xl;
+    @include font-size($input-font-size-xl);
+    @include border-radius($input-border-radius-xl);
+  
+    &::file-selector-button {
+      padding: $input-padding-y-xl $input-padding-x-xl;
+      margin: (-$input-padding-y-xl) (-$input-padding-x-xl);
+      margin-inline-end: $input-padding-x-xl;
+    }
+  }
+  .form-control-xs {
+    min-height: $input-height-xs;
+    padding: $input-padding-y-xs $input-padding-x-xs;
+    @include font-size($input-font-size-xs);
+    @include border-radius($input-border-radius-sm);
+  
+    &::file-selector-button {
+      padding: $input-padding-y-xs $input-padding-x-xs;
+      margin: (-$input-padding-y-xs) (-$input-padding-x-xs);
+      margin-inline-end: $input-padding-x-sm;
+    }
+  }

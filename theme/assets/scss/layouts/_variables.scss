@@ -1,0 +1,61 @@
+@import '../_bootstrapExtended/variables-color';
+
+// header vars
+$app-header-shadow: 0px 1px 2px 0px rgba(#191822, .12);
+$app-header-height : 60px;
+
+
+// sidebar vars
+$app-sidebar-footer-height : 60px;
+$app-sidebar-header-height : $app-header-height;
+$app-sidebar-width : 275px;
+$app-sidebar-collapsed-width : 80px;
+$app-sidebar-header-border : #F6F6F9;
+$app-sidebar-shadow: 0px 1px 3px 0px rgba(#191822, .18);
+$app-sidebar-active-nav-link-shadow: 0px 1px 2px 0 rgba(#2411B8, .25), 0px 0px 1px 0 rgba(#2B18BE, .25);
+$app-sidebar-menu-color: $gray-500;
+$app-sidebar-menu-hover-bg: #F6F6F9;
+
+
+$layout : (
+    "app-header-height": $app-header-height,
+    "app-sidebar-header-height": $app-sidebar-header-height,
+    "app-sidebar-footer-height": $app-sidebar-footer-height,
+    "app-sidebar-width": $app-sidebar-width,
+    "app-sidebar-collapsed-width": $app-sidebar-collapsed-width,
+    "app-sidebar-header-border": $app-sidebar-header-border,
+    "app-sidebar-menu-hover-bg": $app-sidebar-menu-hover-bg,
+    "app-sidebar-shadow": $app-sidebar-shadow,
+    "app-sidebar-active-nav-link-shadow": $app-sidebar-active-nav-link-shadow,
+    "app-header-shadow": $app-header-shadow,
+    "app-main-bg": #F4F4F7
+);
+
+:root,
+[data-bs-theme='light'] {
+    @each $key, $value in $layout{
+        --#{$key}: #{$value};
+    }
+}
+
+
+
+// dark colors 
+$sidebar-bg-dark:                 $dark-800 !default;
+$sidebar-menu-color-dark:         $dark-500 !default;
+$sidebar-menu-hover-bg-dark:      $dark-700 !default;
+$sidebar-header-border-dark:      rgba($app-sidebar-header-border , .1) !default;
+
+:root[data-bs-theme=dark] {
+    --app-sidebar-bg: #{$sidebar-bg-dark};
+    --app-sidebar-menu-color: #{$sidebar-menu-color-dark};
+    --app-sidebar-menu-hover-bg: #{$sidebar-menu-hover-bg-dark};
+    --app-sidebar-header-border: #{$sidebar-header-border-dark};
+    --app-main-bg: #{$dark-900};
+
+    .header-nav-link{
+        &:hover{
+            background-color: #161618;
+        }
+    }
+}

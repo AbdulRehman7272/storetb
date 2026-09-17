@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /tbrand-control
+
+Sitemap: https://tbrand.pk/sitemap.xml

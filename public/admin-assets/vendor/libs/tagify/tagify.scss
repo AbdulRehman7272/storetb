@@ -1,0 +1,106 @@
+@import '../../src/assets/scss/_bootstrapExtended/variables-color.scss';
+@import '../../node_modules/@yaireo/tagify/src/tagify.scss';
+
+:root{
+	--tagify-dd-color-primary: rgba(var(--bs-primary-rgb), 1); // should be same as "$tags-focus-border-color"
+    --tagify-dd-text-color: var(--clr-text-custom-black);
+    --tagify-dd-bg-color: var(--bs-card-bg);
+}
+
+.tagify {
+	--tags-disabled-bg: #F1F1F1;
+	--tags-border-color: var(--bs-input-border-color);
+	--tags-hover-border-color: var(--bs-input-border-color);
+	--tags-focus-border-color: var(--bs-primary);
+	--tag-border-radius: 4px;
+	--tag-bg: #DEDEE0;
+	--tag-hover: #{rgba(var(--bs-primary-rgb), .3)};
+	--tag-text-color: var(--clr-text-custom-black); 
+	--tag-text-color--edit: black;
+	--tag-pad: 0.3em 0.5em;
+	--tag-inset-shadow-size: 2rem;
+	--tag-invalid-color: var(--bs-danger) !important;
+	--tag-invalid-bg: rgba(211, 148, 148, 0.5);
+	--tag--min-width: 1ch;
+	--tag--max-width: 100%;
+	--tag-hide-transition: 0.3s;
+	--tag-remove-bg: #{rgba(var(--bs-danger-rgb), .3)};
+	--tag-remove-btn-color: var(--clr-text-custom-black);
+	--tag-remove-btn-bg: none;
+	--tag-remove-btn-bg--hover: var(--bs-danger) !important;
+	--input-color: inherit;
+	--placeholder-color: rgba(0, 0, 0, 0.4);
+	--placeholder-color-focus: rgba(0, 0, 0, 0.25);
+	--loader-size: .8em;
+	--readonly-striped: 1;
+	line-height: 0;
+	transition:  all 0.3s ease;
+}
+
+.tagify.tagify--focus{
+	background-color: transparent;
+	border-color: var(--bs-primary);
+	outline: 0;
+	box-shadow: 0px 0px 0px 3px rgba(var(--bs-primary-rgb), 0.14);
+	transition:  all 0.3s ease;
+}
+
+.tagify__tag__removeBtn:hover + div > span {
+	opacity: 1;
+}
+
+.tagify__tag__avatar-wrap {
+	& img{
+		border-radius: 50%;
+		width: 20px;
+		height: 20px;
+		object-fit: cover;
+		margin-inline-end: 5px;
+	}
+}
+
+// suggest dropdown
+.tagify__dropdown.users-list {
+	font-size: 1rem;
+	.addAll {
+	  display: block !important;
+	}
+  
+	.tagify__dropdown__item {
+	  display: grid;
+	  grid-template-columns: auto 1fr;
+	  gap: 0 1em;
+	  grid-template-areas:
+		'avatar name'
+		'avatar email';
+  
+	  &__avatar-wrap {
+		grid-area: avatar;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		overflow: hidden;
+  
+		transition: 0.1s ease-out;
+	  }
+	}
+  
+	img {
+	  width: 100%;
+	  vertical-align: top;
+	}
+  
+	strong {
+	  grid-area: name;
+	  width: 100%;
+	  align-self: center;
+	  font-weight: 500;
+	}
+  
+	span {
+	  grid-area: email;
+	  width: 100%;
+	  font-size: 0.9em;
+	  opacity: 0.6;
+	}
+  }

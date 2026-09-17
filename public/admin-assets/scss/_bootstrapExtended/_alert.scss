@@ -1,0 +1,65 @@
+.alert {
+    border: 0;
+    font-size: 14px;
+    font-weight: 500;
+    @include border-radius(var(--#{$prefix}alert-border-radius));
+
+    &:has(.alert-heading) {
+        box-shadow: none !important;
+        padding: 18px 24px 24px;
+    }
+
+    & p{
+        font-weight: $font-weight-normal;
+    }
+
+    & .alert-btn{
+        &:hover{
+            box-shadow: none;
+        }
+    }
+}
+
+.alert-heading {
+    font-size: $spacer;
+    font-weight: $font-weight-semibold;
+  }
+
+.alert-btn{
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: $border-radius;
+    text-decoration: none;
+    text-align: center;
+    padding: 6px 15px;
+    display: inline-block;
+    @include transition($btn-transition);
+}
+
+.alert-dismissible {
+    .btn-close {
+        transition: opacity .15s ease-in-out;
+    }
+}
+
+@include dir-rtl {
+  .alert-dismissible .btn-close {
+    right: initial;
+    left: 0;
+  }
+
+  .alert-dismissible {
+        padding-left: 4.5rem;
+        padding-right: var(--bs-alert-padding-x);
+    }
+}
+
+@each $state, $value in $theme-colors {
+    @include conca-alert-variant('.alert-#{$state}', $value);
+}
+@each $state, $value in $theme-colors {
+    @include conca-alert-fill-variant('.alert-fill-#{$state}', $value);
+}
+@each $state, $value in $theme-colors {
+    @include conca-alert-outline-variant('.alert-outline-#{$state}', $value);
+}

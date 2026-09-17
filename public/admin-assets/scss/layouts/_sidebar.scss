@@ -1,0 +1,236 @@
+@import '../theme/functions';
+@import '../_bootstrapExtended/variables-color';
+// app sidebar layout css
+$sidebar: '.app-sidebar';
+
+#{$sidebar}{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--app-sidebar-width);
+    box-shadow: var(--app-sidebar-shadow);
+    height: 100%;
+    background-color: var(--bs-card-bg);
+    transition: width 0.3s ease, transform 0.3s ease;
+    z-index: 999;
+
+    @include rtl(){
+        left: auto;
+        right: 0;
+    }
+
+    @media (max-width: 1199px) {
+        transform: translateX(-100%);
+    }
+
+    @media (max-width: 1199px) {
+        @include rtl(){
+            transform: translateX(100%);
+        }
+    }
+
+    &-wrapper{
+        width: var(--app-sidebar-width);
+    }
+
+    &-close-btn{
+        color: var(--bs-gray-700);
+
+        &:hover{
+            color: var(--bs-primary);
+        }
+    }
+}
+
+
+// app header
+#{$sidebar}-header{
+    height: var(--app-sidebar-header-height);
+    border-bottom: 1px solid var(--app-sidebar-header-border);
+    padding:  14px 26px;
+    position: relative;
+
+    & .app-logo-icon{
+        display: none;
+    }
+}
+
+
+// app sidebar menu
+#{$sidebar}-menu{
+    padding: 20px 15px 20px 15px;
+    position: relative;
+    
+
+    ul{
+        padding: 0;
+        margin: 0;
+        & li{
+            list-style-type: none;
+            display: block;
+
+            a{
+                transition: all 0s ease-in-out;
+                font-family: "Inter", sans-serif;
+                color: var(--app-sidebar-menu-color);
+                text-decoration: none;
+                font-size: 14px;
+                line-height: 1;
+                font-weight: 500;
+                border-radius: 6px;
+                padding: 11px 16px;
+                margin-bottom: 4px;
+                
+                & .menu{
+                    &-icon{
+                        width: 20px;
+                        margin-inline-end: 5px;
+                        transform: translateY(-1px);
+                        transition: none;
+                    }
+                    &-arrow{
+                        transition: all .3s ease-in-out;
+                        @include rtl(){
+                            transform: rotate(180deg);
+                        }
+                    }
+                }
+
+
+                & span{
+                    color: currentColor;
+
+                    &.menu-title{
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        gap: 10px;
+
+                        & .badge{
+                            margin-inline-end: 12px;
+                        }
+                    }
+                }
+
+                &:hover,
+                &.active{
+                    background-color: var(--app-sidebar-menu-hover-bg);
+                }
+
+                &.menu-current{
+                    background-color: var(--bs-primary);
+                    color: var(--bs-white);
+                    box-shadow: 0 1px 2px 0 rgba(#3711B8, .25), 0 0 1px 0 #3E18BE;
+                    &::before{
+                        background-color: transparent;
+                        opacity: 1;
+                    }
+
+                    &:hover{
+                        background-color: var(--bs-primary);
+                        color: var(--bs-white);
+                        box-shadow: 0 1px 2px 0 rgba(#3711B8, .25), 0 0 1px 0 #3E18BE;
+                    }
+                }
+
+                
+
+                &.active{
+                    & .menu{
+                        &-arrow{
+                            transform: rotate(90deg);
+                        }
+                    }
+                }
+            }
+        
+            #{$sidebar}-submenu{
+                padding-inline-start: 20px;
+                display: none;
+                & li{
+                    & a{
+                        position: relative;
+
+                        &::before{
+                            content: "";
+                            width: 6px;
+                            height: 6px;
+                            border: 1px solid currentColor;
+                            border-radius: 50%;
+                            margin-inline-end: 6px;
+                            opacity: .4;
+                        }
+
+
+                        &.menu-current{
+                            background-color: var(--bs-primary);
+                            color: var(--bs-white);
+                            box-shadow: 0 1px 2px 0 rgba(#3711B8, .25), 0 0 1px 0 #3E18BE;
+                            &::before{
+                                background-color: transparent;
+                                opacity: 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #{$sidebar}-menu-heading{
+            padding: 15px 0 5px;
+            & > span{
+                font-size: 13px;
+                color: #939397;
+                display: inline-block;
+                padding: 0 16px;
+                position: relative;
+                
+            }
+            & #{$sidebar}-menu-heading-line{
+                display: inline-block;
+                height: 4px;
+                width: 16px;
+                background-color: #D9D9D9;
+                border-radius: 2px;
+                position: relative;
+                visibility: hidden;
+                position: absolute;
+                top: 50%;
+                transform: translate(1px, -50%);
+
+                &::after,
+                &::before{
+                    position: absolute;
+                    top: 0;
+                    left: -8px;
+                    content: "";
+                    display: block;
+                    height: 4px;
+                    width: 4px;
+                    background-color: #D9D9D9;
+                    border-radius: 2px;
+
+                    @include rtl(){
+                        left: auto;
+                        right: -8px;
+                    }
+                }
+
+                &::after{
+                    left: auto;
+                    right: -8px;
+
+                    @include rtl(){
+                        left: -8px;
+                        right: auto;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+// app sidebar footer
+#{$sidebar}-footer{
+    height: var(--app-sidebar-footer-height);
+}

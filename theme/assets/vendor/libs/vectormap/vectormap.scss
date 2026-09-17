@@ -1,0 +1,24 @@
+@use '../../node_modules/jsvectormap/src/scss/jsvectormap.scss' with (
+    $zoom-btns-bg-color: var(--bs-white),
+);
+
+.jvm-zoom-btn {
+    color: var(--bs-black);
+    border: 1px solid var(--bs-border-color);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+    font-size: 16px;
+}
+
+.jvm-zoom-btn.jvm-zoomin {
+	top: 5px;
+}
+
+.map-container{
+    height: 350px;
+}

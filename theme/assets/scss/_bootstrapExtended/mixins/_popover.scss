@@ -1,0 +1,9 @@
+@mixin conca-popover-variants($parent, $color){
+    #{$parent}{
+        $header-color: color-contrast($color);
+
+        --bs-popover-border-color: #{$color};
+        --bs-popover-header-bg: #{$color};
+        --bs-popover-header-color: #{$header-color};
+    }
+}

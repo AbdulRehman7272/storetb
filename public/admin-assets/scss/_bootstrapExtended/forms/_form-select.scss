@@ -1,0 +1,6 @@
+.form-select {
+    @include rtl {
+        background-position: left 1.375rem center;
+        padding: 0.625rem 1.375rem 0.625rem 4.125rem ;
+    }
+}

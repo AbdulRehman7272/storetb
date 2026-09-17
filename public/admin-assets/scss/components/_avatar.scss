@@ -1,0 +1,115 @@
+// Avatar
+// *******************************************************************************
+
+// Avatar Styles
+.avatar {
+    position: relative;
+    width: $avatar-size;
+    height: $avatar-size;
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+    }
+    // Avatar Initials if no images added
+    .avatar-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $white;
+      background-color: $gray-800;
+      font-weight: $font-weight-medium;
+      border-radius: inherit;
+    }
+
+    &.avatar-border{
+      border: 1px solid var(--bs-card-bg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bs-card-bg);
+      & img{
+        width: auto;
+        height: auto;
+        border-radius: initial;
+        max-width: 100%;
+        max-height: 100%;
+      }
+    }
+}
+  
+.avatar-status-online,
+.avatar-status-offline,
+.avatar-status-away,
+.avatar-status-busy {
+  &::after {
+    content: '';
+    position: absolute;
+    top: -1px;
+    right: -3px;
+    width: $avatar-status-size;
+    height: $avatar-status-size;
+    border-radius: 100%;
+    box-shadow: inset 0 0 0 2px var(--bs-card-bg);
+  }
+}
+.avatar-status-online::after {
+  background-color: $success;
+}
+.avatar-status-offline::after {
+  background-color: $secondary;
+}
+.avatar-status-away::after {
+  background-color: $warning;
+}
+.avatar-status-busy::after {
+  background-color: $danger;
+}
+
+// Avatar Sizes
+@include conca-avatar-variant('.avatar-xs',$avatar-size-xs, $avatar-font-size-xs, $avatar-status-size-xs, -2px, -3px);
+@include conca-avatar-variant('.avatar-sm',$avatar-size-sm, $avatar-font-size-sm, $avatar-status-size-sm, -1px, -3px);
+@include conca-avatar-variant('.avatar-md',$avatar-size-md, $avatar-font-size-md, $avatar-status-size-md, 0, -4px);
+@include conca-avatar-variant('.avatar-lg',$avatar-size-lg, $avatar-font-size-lg, $avatar-status-size-lg, 0px, 2px);
+@include conca-avatar-variant('.avatar-xl',$avatar-size-xl, $avatar-font-size-xl, $avatar-status-size-xl, 4px, 8px, 3px);
+
+.avatar-group {
+  .avatar {
+    transition: all 0.25s ease;
+    img,
+    .avatar-text {
+      border: 2px solid var(--bs-card-bg);
+    }
+    &:hover {
+      z-index: 30;
+    }
+  }
+  .avatar {
+    margin-inline-start: -0.8rem;
+    &:first-child {
+      margin-inline-start: 0;
+    }
+  }
+  .avatar-xs {
+    margin-inline-start: -0.65rem;
+  }
+  .avatar-sm {
+    margin-inline-start: -0.75rem;
+  }
+  .avatar-md {
+    margin-inline-start: -0.9rem;
+  }
+  .avatar-lg {
+    margin-inline-start: -1.5rem;
+  }
+  .avatar-xl {
+    margin-inline-start: -1.75rem;
+  }
+}

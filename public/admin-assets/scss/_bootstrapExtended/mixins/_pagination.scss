@@ -1,0 +1,85 @@
+@mixin conca-pagination-variant($parent, $background) {
+
+    $background: $background;
+    $border: $background;
+    $color: color-contrast($background);
+
+    $hover-background: if($color == $color-contrast-light, shade-color($background, $btn-hover-bg-shade-amount), tint-color($background, $btn-hover-bg-tint-amount));
+    $hover-border: if($color == $color-contrast-light, shade-color($border, $btn-hover-border-shade-amount), tint-color($border,$btn-hover-border-tint-amount));
+    $hover-color: color-contrast($hover-background);
+
+    $active-background: if(  $color == $color-contrast-light, shade-color($background, $btn-active-bg-shade-amount), tint-color($background, $btn-active-bg-tint-amount));
+    $active-border: if( $color == $color-contrast-light, shade-color($border, $btn-active-border-shade-amount), tint-color($border, $btn-active-border-tint-amount));
+    $active-color: color-contrast($active-background);
+
+    #{$parent}{
+        .page-link {
+            color: $background;
+          
+            &:hover {
+              color: $hover-color;
+              background-color: $hover-background;
+              border-color: $hover-background;
+            }
+          
+            &:focus{
+                color: $active-color;
+                background-color: $active-background;
+                border-color: $active-background;
+            }
+          
+            &.active,
+            .active > .page-link {
+                color: $active-color;
+                background-color: $active-background;
+                border-color: $active-background;
+            }
+        } 
+        .page-item{
+            &.active > .page-link {
+                color: $color;
+                background-color: $background;
+                border-color: $background;
+                &:focus{
+                    color: $active-color;
+                    background-color: $active-background;
+                    border-color: $active-background;
+                }
+            }
+        }   
+    }
+}
+
+@mixin conca-pagination-outline-variant($parent, $background) {
+    $color: $background;
+    $background: $background;
+    $border: $background;
+  
+    $active-background: shade-color($background, $btn-active-bg-shade-amount);
+    $active-border: shade-color($background, $btn-active-bg-shade-amount);
+    $active-color: color-contrast($active-background);
+  
+    $hover-background: $color;
+    $hover-color: color-contrast($hover-background);
+
+    #{$parent}{
+        .page-link {
+            color: $color;
+            border-color: $border;
+
+            &:hover {
+              color: $hover-color;
+              background-color: $hover-background;
+              border-color: $hover-background;
+            }
+          
+            &:focus,
+            &.active,
+            .active > & {
+                color: $active-color;
+                background-color: $active-background;
+                border-color: $active-background;
+            }
+        }    
+    }
+}

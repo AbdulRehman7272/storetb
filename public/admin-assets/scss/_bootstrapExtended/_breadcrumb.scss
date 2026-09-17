@@ -1,0 +1,31 @@
+
+  
+.breadcrumb-item {
+    color: $breadcrumb-item-color;
+    & a{
+        text-decoration: none;
+        color: inherit;
+        &:hover{
+            color: $primary;
+            text-decoration: underline;
+        }
+    }
+    &.active {
+      
+    }
+  }
+  
+
+.breadcrumb-item + .breadcrumb-item {
+    @include rtl {
+        padding-right: var(--bs-breadcrumb-item-padding-x);
+        padding-left: 0;
+    }
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    @include rtl {
+        float: right;
+        transform: rotate(180deg);
+    }
+}

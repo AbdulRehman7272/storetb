@@ -1,0 +1,11 @@
+@each $color, $value in $theme-colors {
+    @include conca-pagination-variant('.pagination-#{$color}', $value);
+    @include conca-pagination-outline-variant('.pagination-outline-#{$color}', $value);
+}
+
+@include dir-rtl {
+  .page-item:not(:first-child) .page-link {
+    margin-left: 0;
+    margin-right: 0.375rem;
+  }
+}

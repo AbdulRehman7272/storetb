@@ -1,0 +1,71 @@
+// Form control
+// *******************************************************************************
+
+
+.form-control-icon {
+    @extend .form-control;
+    padding: 0 $spacer * 1.5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $input-color;
+    &:has(input:focus){
+        color: $input-focus-color;
+        background-color: $input-focus-bg;
+        border-color: $input-focus-border-color;
+        outline: 0;
+        box-shadow: 0px 0px 0px 3px rgba($input-focus-border-color,.14);
+    }
+
+    & input{
+        border: 0;
+        outline: 0;
+        width: 100%;
+        background-color: inherit;
+        padding: $input-padding-y 0;
+        &:focus{
+            border: 0;
+        }
+    }
+
+    &.form-control-sm {
+        & input{
+            min-height: $input-height-sm;
+            padding: $input-padding-y-sm 0;
+            @include font-size($input-font-size-sm);
+            @include border-radius($input-border-radius-sm);
+          
+            &::file-selector-button {
+              padding: $input-padding-y-sm 0;
+              margin: (-$input-padding-y-sm) 0;
+              margin-inline-end: 0;
+            }
+        }
+      }
+      
+    &.form-control-lg {
+        & input{
+            min-height: $input-height-lg;
+            padding: $input-padding-y-lg 0;
+            @include font-size($input-font-size-lg);
+            @include border-radius($input-border-radius-lg);
+        
+            &::file-selector-button {
+            padding: $input-padding-y-lg 0;
+            margin: (-$input-padding-y-lg) 0;
+            margin-inline-end: 0;
+            }
+        }
+    }
+
+    & button{
+        transition: all 0.3s ease-in-out;
+        &:hover{
+            color: currentColor !important;
+        }
+    }
+
+    & svg{
+        transform: translateY(-1px);
+    }
+}

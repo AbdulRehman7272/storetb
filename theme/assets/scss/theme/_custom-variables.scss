@@ -1,0 +1,99 @@
+$colors: (
+  "bg" : (
+    "gray": #F6F6F9,
+    "gray-2": #F8F8F8,
+    "gray-3": #F4F4F7,
+    "gray-4": #EDEDF0,
+    "gray-secondary": #EEEEF0,
+    "error-page": #E9E7FF,
+  ),
+  "text": (
+    "custom-secondary": #444446,
+    "custom-body": #57575A,
+    "custom-body-2": #939397,
+    "custom-dark": #3D3C46,
+    "custom-paragraph": #716F7E,
+    "custom-badge": #242424,
+    "custom-disabled": #B6B6B6,
+    "custom-black": #191822,
+    "warning-dark" : #5B3A05,
+  ),
+  "border": (
+    "custom-pagination": #DFDFE0,
+    "custom-secondary": #EEEEEF,
+    "gray": #E8E8E8,
+  )
+);
+
+// dark mode colors
+$dark-colors: (
+  "bg" : (
+    "gray": #161618,
+    "gray-2": #1c1b1b,
+    "gray-3": #111,
+    "gray-4": #1c1b1b,
+    "gray-secondary": #EEEEF0,
+     "error-page": #1b1b1c,
+  ),
+  "text": (
+    "custom-secondary": rgba(255, 255, 255, 0.8),
+    "custom-body": rgba(255, 255, 255, 0.7),
+    "custom-body-2": #939397,
+    "custom-dark": rgba(255, 255, 255, 0.7),
+    "custom-paragraph": #716F7E,
+    "custom-badge": rgba(255, 255, 255, 0.7),
+    "custom-disabled": #626262,
+    "custom-black": rgba(255, 255, 255, 0.7),
+    "warning-dark" : #E6930D,
+  ),
+  "border": (
+    "custom-pagination": #DFDFE0,
+    "custom-secondary": rgba(255, 255, 255, 0.1),
+    "gray": var(--bs-border-color),
+  )
+);
+
+:root {
+  @each $prefix, $group in $colors {
+    @each $name, $value in $group {
+      --clr-#{$prefix}-#{$name}: #{$value};
+    }
+  }
+}
+
+@each $prefix, $group in $colors {
+  @each $name, $value in $group {
+    .#{$prefix}-#{$name} {
+      @if $prefix == "text" {
+        color: var(--clr-#{$prefix}-#{$name}) !important;
+      } @else if $prefix == "border" {
+        border-color: var(--clr-#{$prefix}-#{$name}) !important;
+      } @else if $prefix == "bg" {
+        background-color: var(--clr-#{$prefix}-#{$name}) !important;
+      }
+    }
+  }
+}
+
+
+:root[data-bs-theme=dark] {
+  @each $prefix, $group in $dark-colors {
+    @each $name, $value in $group {
+      --clr-#{$prefix}-#{$name}: #{$value};
+    }
+  }
+
+  @each $prefix, $group in $dark-colors {
+    @each $name, $value in $group {
+      .#{$prefix}-#{$name} {
+        @if $prefix == "text" {
+          color: var(--clr-#{$prefix}-#{$name}) !important;
+        } @else if $prefix == "border" {
+          border-color: var(--clr-#{$prefix}-#{$name}) !important;
+        } @else if $prefix == "bg" {
+          background-color: var(--clr-#{$prefix}-#{$name}) !important;
+        }
+      }
+    }
+  }
+}
