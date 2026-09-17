@@ -12,8 +12,8 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $from = $request->date('from', now()->subDays(30))->startOfDay();
-        $to = $request->date('to', now())->endOfDay();
+        $from = $request->filled('from') ? $request->date('from')->startOfDay() : now()->subDays(30)->startOfDay();
+        $to = $request->filled('to') ? $request->date('to')->endOfDay() : now()->endOfDay();
         $orders = Order::query()->whereBetween('created_at', [$from, $to]);
 
         return view('admin.reports.index', [
