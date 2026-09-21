@@ -13,7 +13,6 @@ class StoreSettings
             return Setting::query()
                 ->where('is_public', true)
                 ->pluck('value', 'key')
-                ->map(fn ($value) => is_string($value) ? json_decode($value, true) : $value)
                 ->all();
         });
     }
@@ -23,7 +22,6 @@ class StoreSettings
         $settings = Cache::remember('store.settings', 3600, function () {
             return Setting::query()
                 ->pluck('value', 'key')
-                ->map(fn ($value) => is_string($value) ? json_decode($value, true) : $value)
                 ->all();
         });
 

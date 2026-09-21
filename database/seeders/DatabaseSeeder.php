@@ -69,6 +69,7 @@ class DatabaseSeeder extends Seeder
             ['general_email', 'info@tbrand.pk', 'contact'],
             ['support_email', 'support@tbrand.pk', 'contact'],
             ['address', 'Pakistan', 'contact'],
+            ['show_footer_contact', true, 'contact'],
             ['footer_credit', 'Powered by BoostupLive', 'branding'],
             ['footer_credit_url', 'https://boostuplive.com', 'branding'],
             ['main_logo', 'brand/tbrand/01_Main_Horizontal_Black.png', 'branding'],
@@ -81,6 +82,17 @@ class DatabaseSeeder extends Seeder
             ['free_shipping_threshold', 5000, 'shipping'],
             ['primary_color', '#111111', 'branding'],
             ['accent_color', '#c8a45d', 'branding'],
+            ['page_text_color', '#f7f2e7', 'branding'],
+            ['button_text_color', '#161207', 'branding'],
+            ['homepage_hero_slogan', 'Style · Quality · Trust', 'homepage'],
+            ['homepage_hero_title', 'Premium TBrand Store', 'homepage'],
+            ['homepage_hero_description', 'Explore quality products selected for your store.', 'homepage'],
+            ['show_super_store', true, 'homepage'],
+            ['homepage_category_slug', null, 'homepage'],
+            ['slider_content_type', 'categories', 'slider'],
+            ['slider_random', false, 'slider'],
+            ['slider_category_ids', [], 'slider'],
+            ['slider_product_ids', [], 'slider'],
         ] as [$key, $value, $group]) {
             StoreSettings::put($key, $value, $group, is_numeric($value) ? 'number' : 'text', true);
         }

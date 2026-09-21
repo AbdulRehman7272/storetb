@@ -49,10 +49,76 @@
         @yield('content')
     </div>
 </div>
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content admin-confirm-modal">
+            <div class="modal-header">
+                <div class="admin-confirm-modal__heading">
+                    <span class="admin-confirm-modal__icon"><i data-lucide="triangle-alert"></i></span>
+                    <h2 class="modal-title" id="deleteConfirmTitle">Confirm deletion</h2>
+                </div>
+                <button type="button" class="icon-btn admin-confirm-modal__close" data-bs-dismiss="modal" aria-label="Close" title="Close"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Delete <strong data-delete-name></strong> permanently?</p>
+                <small data-delete-note>This item can only be deleted when it is not in use.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" data-delete-form>
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn admin-danger-btn"><i data-lucide="trash-2"></i>Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <script src="{{ asset('admin-assets/vendor/libs/apexcharts/apexcharts.js') }}"></script>
 <script src="{{ asset('admin-assets/vendor/libs/jquery/jquery.js') }}"></script>
 <script src="{{ asset('admin-assets/vendor/libs/select2/select2.js') }}"></script>
+<script src="{{ asset('admin-assets/js/bootstrap.js') }}"></script>
 <script>document.addEventListener('DOMContentLoaded',()=>{$('.admin-multiselect').select2({width:'100%',closeOnSelect:false,placeholder:'Select items'});});</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const element = document.getElementById('deleteConfirmModal');
+    const modal = bootstrap.Modal.getOrCreateInstance(element);
+    const form = element.querySelector('[data-delete-form]');
+    const name = element.querySelector('[data-delete-name]');
+    const note = element.querySelector('[data-delete-note]');
+
+    document.querySelectorAll('[data-delete-trigger]').forEach((trigger) => {
+        trigger.addEventListener('click', () => {
+            form.action = trigger.dataset.deleteAction;
+            name.textContent = trigger.dataset.deleteName;
+            const notes = {
+                category: 'Categories containing products or child categories cannot be deleted.',
+                collection: 'Products assigned to this collection will remain in your store.',
+                product: 'Products used in an order or customer cart cannot be deleted.',
+            };
+            note.textContent = notes[trigger.dataset.deleteKind] || 'This item will be deleted permanently.';
+            modal.show();
+        });
+    });
+});
+document.addEventListener('change', (event) => {
+    const input = event.target.closest('[data-admin-image-input]');
+    if (!input || !input.files?.[0]) return;
+    const picker = input.closest('[data-admin-image-picker]');
+    const preview = picker.querySelector('[data-admin-image-preview]');
+    const empty = picker.querySelector('[data-admin-image-empty]');
+    const state = picker.querySelector('[data-admin-image-state]');
+    const reader = new FileReader();
+    reader.onload = () => {
+        preview.src = reader.result;
+        preview.hidden = false;
+        empty.hidden = true;
+        state.textContent = 'Selected replacement';
+        picker.classList.add('has-selection');
+    };
+    reader.readAsDataURL(input.files[0]);
+});
+</script>
 @stack('scripts')
 </body>
 </html>

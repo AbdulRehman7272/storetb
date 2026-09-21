@@ -12,9 +12,12 @@ use App\Models\ProductMedia;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Models\ProductVariant;
+use App\Models\OrderItem;
+use App\Models\CartItem;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -25,8 +28,7 @@ class ProductController extends Controller
         if ($request->filled('search')) {
             $query->where(fn ($builder) => $builder
                 ->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('sku', 'like', '%' . $request->search . '%')
-                ->orWhere('barcode', 'like', '%' . $request->search . '%'));
+                ->orWhere('sku', 'like', '%' . $request->search . '%'));
         }
         foreach (['category_id', 'brand_id', 'vendor_id', 'status'] as $filter) {
             if ($request->filled($filter)) {
@@ -57,7 +59,7 @@ class ProductController extends Controller
     public function create(Request $request)
     {
         return view('admin.products.form', [
-            'product' => new Product(['status' => 'draft', 'stock' => 0]),
+            'product' => new Product(['status' => 'draft', 'stock' => 0, 'product_type' => 'single']),
             'mode' => $request->get('mode', 'quick'),
             'categories' => Category::query()->orderBy('name')->get(),
             'brands' => Brand::query()->orderBy('name')->get(),
@@ -104,10 +106,43 @@ class ProductController extends Controller
         return redirect()->route('admin.products.edit', $product)->with('status', 'Product updated.');
     }
 
+    public function checkVendorCode(Request $request)
+    {
+        $code = trim((string) $request->query('code'));
+        if ($code === '') return response()->json(['exists' => false]);
+
+        $product = Product::query()->where('vendor_code', $code)
+            ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
+        $variant = ProductVariant::query()->with('product')->where('vendor_code', $code)
+            ->when($request->integer('exclude_variant_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
+        $match = $product ?: $variant?->product;
+
+        return response()->json([
+            'exists' => (bool) $match,
+            'name' => $match?->name,
+            'url' => $match ? route('admin.products.edit', $match) : null,
+        ]);
+    }
+
     public function destroy(Product $product)
     {
-        $product->update(['status' => 'archived']);
-        return back()->with('status', 'Product archived.');
+        if (OrderItem::query()->where('product_id', $product->id)->exists() || CartItem::query()->where('product_id', $product->id)->exists()) {
+            return back()->withErrors(['delete' => 'This product is in use by an order or cart. Archive it instead of deleting it.']);
+        }
+
+        $product->load('media', 'variants');
+        $product->media->each(fn ($media) => $this->deletePublicFile($media->path));
+        $product->variants->each(fn ($variant) => $this->deletePublicFile($variant->image));
+        $product->delete();
+
+        return back()->with('status', 'Product deleted permanently.');
+    }
+
+    private function deletePublicFile(?string $path): void
+    {
+        if ($path && str_starts_with($path, 'storage/')) {
+            Storage::disk('public')->delete(str($path)->after('storage/')->toString());
+        }
     }
 
     public function bulk(Request $request)
@@ -159,14 +194,22 @@ class ProductController extends Controller
         if (! $product && Product::query()->where('slug', $data['slug'])->exists()) {
             $data['slug'] .= '-' . Str::random(4);
         }
-        $data['sku'] = ($data['sku'] ?? null) ?: ($product->sku ?? null);
+        $data['sku'] = ($data['sku'] ?? null) ?: ($product->sku ?? ('TB-' . strtoupper(Str::slug($data['name']))));
+        $skuQuery = Product::query()->where('sku', $data['sku']);
+        if ($product) {
+            $skuQuery->whereKeyNot($product->id);
+        }
+        if ($skuQuery->exists()) {
+            $data['sku'] .= '-' . ($product?->id ?: strtoupper(Str::random(4)));
+        }
+        $data['regular_price'] = $data['regular_price'] ?? 0;
         $data['stock'] = $data['stock'] ?? 0;
         $data['is_featured'] = $request->boolean('is_featured');
         $data['published_at'] = $data['status'] === 'published' ? ($product->published_at ?? now()) : null;
         $data['seo_title'] = $request->input('seo_title') ?: $data['name'];
         $data['seo_description'] = $request->input('seo_description');
         $data['tags'] = collect(explode(',', (string) $request->input('tags_text')))->map(fn ($tag) => trim($tag))->filter()->values()->all();
-        unset($data['collection_ids'], $data['tags_text'], $data['variants']);
+        unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image']);
 
         return $data;
     }
@@ -194,15 +237,33 @@ class ProductController extends Controller
         $colourOption = ProductOption::query()->firstOrCreate(['slug' => 'colour'], ['name' => 'Colour']);
         $sizeOption = ProductOption::query()->firstOrCreate(['slug' => 'size'], ['name' => 'Size']);
         $kept = [];
+        $colourImages = [];
         foreach ($request->input('variants', []) as $index => $row) {
             $color = ProductOptionValue::query()->updateOrCreate(['product_option_id' => $colourOption->id, 'slug' => Str::slug($row['color'])], ['value' => $row['color'], 'swatch' => $row['swatch'] ?? '#777777']);
             $size = filled($row['size'] ?? null) ? ProductOptionValue::query()->firstOrCreate(['product_option_id' => $sizeOption->id, 'slug' => Str::slug($row['size'])], ['value' => $row['size']]) : null;
-            $variant = ProductVariant::query()->updateOrCreate(['id' => $row['id'] ?? null, 'product_id' => $product->id], ['name' => collect([$row['color'], $row['size'] ?? null])->filter()->join(' / '), 'sku' => $row['sku'], 'regular_price' => $row['regular_price'], 'sale_price' => $row['sale_price'] ?: null, 'stock' => $row['stock'], 'is_enabled' => (bool) ($row['enabled'] ?? true)]);
-            if ($request->hasFile("variants.$index.image")) $variant->update(['image' => 'storage/'.$request->file("variants.$index.image")->store('variants', 'public')]);
+            $fullPrice = (float) (($row['regular_price'] ?? null) ?: ($row['sale_price'] ?? 0));
+            $enteredSalePrice = (float) ($row['sale_price'] ?? 0);
+            $salePrice = $enteredSalePrice > 0 && $enteredSalePrice < $fullPrice ? $enteredSalePrice : null;
+            $variant = ProductVariant::query()->updateOrCreate(['id' => $row['id'] ?? null, 'product_id' => $product->id], ['name' => collect([$row['color'], $row['size'] ?? null])->filter()->join(' / '), 'sku' => $row['sku'], 'vendor_reference' => $row['vendor_reference'] ?? null, 'vendor_code' => ($row['vendor_code'] ?? null) ?: null, 'regular_price' => $fullPrice, 'sale_price' => $salePrice, 'cost_price' => ($row['cost_price'] ?? null) ?: null, 'stock' => $row['stock'], 'is_enabled' => (bool) ($row['enabled'] ?? false)]);
+            $image = $request->file("variants.$index.image");
+            if ($image?->isValid()) {
+                $storedImage = $image->store('variants', 'public');
+                if (! $storedImage) {
+                    throw new \RuntimeException('The variant image could not be saved.');
+                }
+                $variant->update(['image' => 'storage/'.$storedImage]);
+            } elseif (! $variant->image && isset($colourImages[Str::slug($row['color'])])) {
+                $variant->update(['image' => $colourImages[Str::slug($row['color'])]]);
+            }
+            if ($variant->image) $colourImages[Str::slug($row['color'])] = $variant->image;
             $variant->optionValues()->sync(collect([$color->id, $size?->id])->filter());
             $kept[] = $variant->id;
         }
-        if ($request->has('variants')) $product->variants()->whereNotIn('id', $kept)->delete();
+        if ($request->input('product_type') === 'single') {
+            $product->variants()->delete();
+        } elseif ($request->has('variants')) {
+            $product->variants()->whereNotIn('id', $kept)->delete();
+        }
         if ($kept) $product->update(['stock' => $product->variants()->sum('stock')]);
     }
 }

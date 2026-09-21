@@ -15,6 +15,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="{{ asset('assets/favicon.ico') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>:root{--color-ink:{{ \App\Support\StoreSettings::get('primary_color', '#111111') }};--color-gold:{{ \App\Support\StoreSettings::get('accent_color', '#c8a45d') }};--color-gold-2:{{ \App\Support\StoreSettings::get('accent_color', '#c8a45d') }};--color-text:{{ \App\Support\StoreSettings::get('page_text_color', '#f7f2e7') }};--color-button-text:{{ \App\Support\StoreSettings::get('button_text_color', '#161207') }}}</style>
     <script type="application/ld+json">
         {"@@context":"https://schema.org","@@type":"Organization","name":"TBrand","url":"{{ url('/') }}","logo":"{{ $data['store']['logo'] }}"}
     </script>

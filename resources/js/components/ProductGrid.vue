@@ -95,7 +95,6 @@
                     <legend>More</legend>
                     <label><input v-model="filters.available" type="checkbox"> <span>In stock only</span></label>
                     <label><input v-model="filters.discounted" type="checkbox"> <span>Discounted</span></label>
-                    <label><input v-model="filters.rating" type="checkbox"> <span>Rating 4.7+</span></label>
                 </fieldset>
             </aside>
 
@@ -175,7 +174,6 @@ const filters = reactive({
     max: 12000,
     available: false,
     discounted: false,
-    rating: false,
 });
 
 const categories = computed(() => data.categories || []);
@@ -184,13 +182,17 @@ const source = computed(() => {
 
     if (!props.expandVariants) return products;
 
-    return products.flatMap((product) => (product.colors?.length ? product.colors : ['Default']).map((color, index) => ({
-        ...product,
-        cardKey: `${product.slug}-${color}`,
-        variantColor: color,
-        colors: [color],
-        images: product.images?.length ? [product.images[index % product.images.length], ...product.images.filter((_, imageIndex) => imageIndex !== index % product.images.length)] : [],
-    })));
+    return products.flatMap((product) => (product.colors?.length ? product.colors : ['Default']).map((color, index) => {
+        const variant = product.variants?.find((item) => item.color === color);
+        return {
+            ...product,
+            cardKey: `${product.slug}-${color}`,
+            variantColor: color,
+            variantSku: variant?.sku,
+            colors: [color],
+            images: product.images?.length ? [variant?.image || product.images[index % product.images.length], ...product.images.filter((image) => image !== (variant?.image || product.images[index % product.images.length]))] : [],
+        };
+    }));
 });
 
 const options = computed(() => ({
@@ -213,8 +215,7 @@ const filtered = computed(() => {
             && product.price >= filters.min
             && product.price <= filters.max
             && (!filters.available || product.stock === 'In stock')
-            && (!filters.discounted || product.original_price)
-            && (!filters.rating || product.rating >= 4.7);
+            && (!filters.discounted || product.original_price);
     });
 
     return [...list].sort((a, b) => {
@@ -236,7 +237,6 @@ const chips = computed(() => [
     ...filters.fabrics.map((value) => ({ key: 'fabrics', value, label: value })),
     filters.available ? { key: 'available', value: true, label: 'In stock' } : null,
     filters.discounted ? { key: 'discounted', value: true, label: 'Discounted' } : null,
-    filters.rating ? { key: 'rating', value: true, label: '4.7+ rating' } : null,
 ].filter(Boolean));
 
 function unique(values) {
@@ -266,7 +266,6 @@ function clearFilters() {
     filters.max = 12000;
     filters.available = false;
     filters.discounted = false;
-    filters.rating = false;
 }
 
 function setSort(value) {

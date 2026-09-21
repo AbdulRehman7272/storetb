@@ -114,10 +114,10 @@
         <p class="eyebrow">{{ content?.title || 'TBrand' }}</p>
         <h1>{{ content?.title || 'TBrand' }}</h1>
         <div v-if="page === 'about'" class="about-grid">
-            <img :src="data.categories[0].hero" alt="TBrand premium fashion interior">
+            <img v-if="data.categories?.[0]" :src="data.categories[0].hero" :alt="data.categories[0].name">
             <div>
                 <p>TBrand is built around style, quality, and trust for Pakistani customers who want premium presentation without a complicated shopping experience.</p>
-                <p>The storefront is designed for many categories: ladies suiting leads this phase, while gents suiting, bedsheets, watches, shoes, and accessories already use the same reusable structure.</p>
+                <p>Explore {{ categorySummary }} through one simple, consistent shopping experience.</p>
             </div>
         </div>
         <p v-else>{{ content?.description || 'This customer-facing page is ready for future backend content.' }}</p>
@@ -140,6 +140,15 @@ const track = reactive({ number: '', phone: '' });
 
 const order = computed(() => state.order);
 const content = computed(() => props.context.contentPage);
+const categorySummary = computed(() => {
+    const names = (data.categories || []).map((category) => category.name);
+    if (!names.length) return 'our latest products';
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return names.join(' and ');
+    const visible = names.slice(0, 4);
+    const last = visible.pop();
+    return `${visible.join(', ')} and ${last}${names.length > 4 ? ', plus more' : ''}`;
+});
 const label = computed(() => ({
     wishlist: { eyebrow: 'Saved Pieces', title: 'Wishlist', description: 'Products you saved for later.', empty: 'No wishlist items yet' },
     compare: { eyebrow: 'Side by Side', title: 'Compare Products', description: 'Compare up to four selected products.', empty: 'No products selected for compare' },

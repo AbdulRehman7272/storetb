@@ -24,6 +24,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
+Route::get('/super-store', [StorefrontController::class, 'superStore'])->name('super-store');
 Route::get('/sitemap.xml', function () {
     $urls = collect([['loc' => url('/'), 'lastmod' => now()->toDateString(), 'frequency' => 'daily'], ['loc' => route('shop'), 'lastmod' => now()->toDateString(), 'frequency' => 'daily']]);
     Category::where('is_active', true)->get()->each(fn ($item) => $urls->push(['loc' => route('category.show', $item->slug), 'lastmod' => $item->updated_at->toDateString(), 'frequency' => 'weekly']));
@@ -63,6 +64,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::resource('products', ProductController::class)->except('show');
+        Route::get('vendor-code/check', [ProductController::class, 'checkVendorCode'])->name('vendor-code.check');
         Route::post('products/bulk', [ProductController::class, 'bulk'])->name('products.bulk');
         Route::post('products/{product}/duplicate', [ProductController::class, 'duplicate'])->name('products.duplicate');
         Route::resource('categories', CategoryController::class)->except('show');

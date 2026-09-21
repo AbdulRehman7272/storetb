@@ -3,9 +3,9 @@
         <header class="site-header">
             <a class="logo" :href="$toUrl('/')" aria-label="TBrand home"><img :src="data.store.logo" alt="TBrand"></a>
             <nav class="desktop-nav" aria-label="Main navigation">
-                <a :href="$toUrl('/')">Super Store</a>
+                <a v-if="data.store.show_super_store" :href="$toUrl('/super-store')">Super Store</a>
                 <div class="mega">
-                    <button type="button">Categories</button>
+                    <button type="button">SHOP</button>
                     <div class="mega__panel">
                         <div v-for="group in categoryGroups" :key="group.name">
                             <strong>{{ group.name }}</strong>
@@ -13,8 +13,6 @@
                         </div>
                     </div>
                 </div>
-                <a :href="$toUrl('/shop')">Shop</a>
-                <div class="mega" v-if="data.collections.length"><button type="button">Collections</button><div class="mega__panel mega__panel--single"><div><a v-for="collection in data.collections" :key="collection.slug" :href="$toUrl('/collection/' + collection.slug)">{{ collection.name }}</a></div></div></div>
                 <a :href="$toUrl('/about')">About</a>
                 <a :href="$toUrl('/contact')">Contact</a>
             </nav>
@@ -29,9 +27,9 @@
 
         <div v-if="menuOpen" class="mobile-menu" role="dialog" aria-modal="true" aria-label="Mobile menu">
             <button class="icon-button modal__close" type="button" aria-label="Close menu" @click="menuOpen = false">×</button>
-            <a :href="$toUrl('/')">Super Store</a>
+            <a v-if="data.store.show_super_store" :href="$toUrl('/super-store')">Super Store</a>
             <a :href="$toUrl('/categories')">All Categories</a>
-            <a :href="$toUrl('/shop')">Shop</a>
+            <a :href="$toUrl('/shop')">SHOP</a>
             <a v-for="category in data.categories" :key="category.slug" :href="$toUrl('/category/' + category.slug)">{{ category.name }}</a>
             <a :href="$toUrl('/about')">About</a>
             <a :href="$toUrl('/contact')">Contact</a>
@@ -54,7 +52,13 @@
         <footer class="site-footer">
             <div>
                 <img :src="data.store.logo" alt="TBrand">
-                <p>Premium multi-category shopping shaped around style, quality, and trust.</p>
+                <p>Premium shopping shaped around style, quality, and trust.</p>
+                <div v-if="data.store.show_footer_contact" class="footer-contact">
+                    <a v-if="data.store.general_email" :href="'mailto:' + data.store.general_email">{{ data.store.general_email }}</a>
+                    <a v-if="data.store.support_email" :href="'mailto:' + data.store.support_email">{{ data.store.support_email }}</a>
+                    <a v-if="data.store.whatsapp" :href="'https://wa.me/' + data.store.whatsapp" target="_blank" rel="noreferrer">WhatsApp {{ data.store.whatsapp }}</a>
+                    <span v-if="data.store.address">{{ data.store.address }}</span>
+                </div>
             </div>
             <div>
                 <strong>Shop</strong>
@@ -114,7 +118,7 @@ const categoryGroups = computed(() => {
 });
 
 const TrustStrip = defineComponent({
-    template: `<section class="trust-strip"><span>Premium fabrics</span><span>Easy returns</span><span>Secure payment</span><span>Fast delivery</span></section>`,
+    template: `<section class="trust-strip"><span>Easy returns</span><span>Secure payment</span><span>Fast delivery</span></section>`,
 });
 
 const ProductShelf = defineComponent({
@@ -126,16 +130,17 @@ const ProductShelf = defineComponent({
 const HomePage = defineComponent({
     components: { CategoryCard, ProductCard, TrustStrip, ProductShelf },
     setup() {
-        return { data, addToCart, formatPrice };
+        const heroCategory = computed(() => data.categories?.[0] || null);
+        return { data, addToCart, formatPrice, heroCategory };
     },
     template: `
         <section class="hero hero--home">
-            <picture><img :src="data.categories[0].hero" alt="TBrand premium ladies suiting" fetchpriority="high"></picture>
+            <picture><img class="hero__image" :src="data.store.hero_image" :alt="data.store.hero_title" fetchpriority="high"></picture>
             <div class="hero__content">
-                <p class="eyebrow">Style · Quality · Trust</p>
-                <h1>Premium TBrand Super Store</h1>
-                <p>Shop luxury ladies suiting, gents wear, bedding, watches, shoes, and accessories in one black-and-gold experience.</p>
-                <div class="hero__actions"><a class="button button--gold" :href="$toUrl('/category/ladies-suiting')">Shop Ladies Suiting</a><a class="button button--ghost" :href="$toUrl('/shop')">Explore Store</a></div>
+                <p class="eyebrow">{{ data.store.hero_slogan }}</p>
+                <h1>{{ data.store.hero_title }}</h1>
+                <p>{{ data.store.hero_description }}</p>
+                <div class="hero__actions"><a v-if="heroCategory" class="button button--gold" :href="$toUrl('/category/' + heroCategory.slug)">Shop {{ heroCategory.name }}</a><a class="button button--ghost" :href="$toUrl('/shop')">Explore Store</a></div>
             </div>
         </section>
         <TrustStrip />
@@ -152,7 +157,7 @@ const HomePage = defineComponent({
 const CategoriesPage = defineComponent({
     components: { CategoryCard },
     setup() { return { data }; },
-    template: `<section class="section-block"><p class="eyebrow">All Categories</p><h1>Every TBrand Category</h1><p class="muted">The same storefront architecture supports every current and future category.</p><div class="category-grid category-grid--wide"><CategoryCard v-for="category in data.categories" :key="category.slug" :category="category" /></div></section>`,
+    template: `<section class="section-block categories-page"><p class="eyebrow">All Categories</p><h1 class="categories-page__title">Shop by Category</h1><p class="muted">Explore our complete range and find what suits you.</p><div class="category-grid category-grid--wide"><CategoryCard v-for="category in data.categories" :key="category.slug" :category="category" /></div></section>`,
 });
 
 const LatestStockSlider = defineComponent({
@@ -227,29 +232,28 @@ const LatestStockSlider = defineComponent({
 });
 
 const CategoryRibbon = defineComponent({
-    props: { current: String },
-    setup() { return { data }; },
-    template: `<section class="category-ribbon" aria-label="Explore other categories"><div class="category-ribbon__track"><a v-for="category in data.categoryPromotions.filter(item => item.slug !== current)" :key="category.slug" :href="$toUrl('/category/' + category.slug)"><img :src="category.image" :alt="category.name"><span>{{ category.name }}</span></a></div></section>`,
+    setup() { return { items: data.sliderItems || [] }; },
+    template: `<section v-if="items.length" class="category-ribbon" aria-label="Explore store items"><div class="category-ribbon__track"><a v-for="item in items" :key="item.type + '-' + item.id" :href="item.url"><img :src="item.image" :alt="item.name"><span>{{ item.name }}</span></a></div></section>`,
 });
 
 const CategoryPage = defineComponent({
     components: { ProductGrid, TrustStrip, LatestStockSlider, CategoryRibbon },
     props: { category: Object, products: Array },
     template: `
-        <section class="hero hero--category"><picture><img :src="category.hero" :alt="category.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Category Storefront</p><h1>{{ category.name }}</h1><p>{{ category.description }}</p><div class="hero__actions"><a class="button button--gold" href="#listing">Shop now</a><a class="button button--ghost" :href="$toUrl('/categories')">All categories</a></div></div></section>
+        <section class="hero hero--category"><picture><img class="hero__image" :src="category.hero" :alt="category.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Category Storefront</p><h1>{{ category.name }}</h1><p>{{ category.description }}</p><div class="hero__actions"><a class="button button--gold" href="#listing">Shop now</a><a class="button button--ghost" :href="$toUrl('/categories')">All categories</a></div></div></section>
         <TrustStrip />
-        <section class="section-block"><div class="section-head"><div><p class="eyebrow">Store Sections</p><h2>{{ category.name }} Collections</h2></div></div><div class="chips chips--large"><a href="#listing">Explore All</a><a v-for="section in category.sections" :key="section" href="#listing">{{ section }}</a></div></section>
-        <CategoryRibbon :current="category.slug" />
+        <section v-if="category.sections.length" class="section-block category-sections"><div class="section-head section-head--compact"><div><p class="eyebrow">Browse Sections</p><h2>{{ category.name }}</h2></div></div><div class="chips"><a href="#listing">All Products</a><a v-for="section in category.sections" :key="section" href="#listing">{{ section }}</a></div></section>
+        <CategoryRibbon />
         <LatestStockSlider :category="category" :products="products" />
-        <ProductGrid id="listing" :products="products" :title="'Explore All ' + category.name" eyebrow="All Products & Color Variants" :category-slug="category.slug" expand-variants />
-        <CategoryRibbon :current="category.slug" />
+        <ProductGrid id="listing" :products="products" title="Products" :eyebrow="category.name" :category-slug="category.slug" expand-variants />
+        <CategoryRibbon />
     `,
 });
 
 const CollectionPage = defineComponent({
     components: { ProductGrid },
     props: { collection: Object, products: Array },
-    template: `<section class="hero hero--category"><picture><img :src="collection.image" :alt="collection.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Collection</p><h1>{{ collection.name }}</h1><p>{{ collection.description }}</p></div></section><ProductGrid :products="products" :title="collection.name" eyebrow="Collection Products" />`,
+    template: `<section class="hero hero--category"><picture><img class="hero__image" :src="collection.image" :alt="collection.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Collection</p><h1>{{ collection.name }}</h1><p>{{ collection.description }}</p></div></section><ProductGrid :products="products" :title="collection.name" eyebrow="Collection Products" />`,
 });
 
 const CartDrawer = defineComponent({
@@ -281,7 +285,7 @@ const SearchOverlay = defineComponent({
         <div v-if="open" class="modal-backdrop search-overlay" role="dialog" aria-modal="true" aria-label="Search">
             <div class="modal modal--search">
                 <button class="icon-button modal__close" type="button" aria-label="Close search" @click="$emit('close')">×</button>
-                <form @submit.prevent="submit"><label class="sr-only" for="site-search">Search products</label><input id="site-search" v-model="query" type="search" autofocus placeholder="Search ladies suits, kurta, bedsheets..."><button class="button button--gold">Search</button></form>
+                <form @submit.prevent="submit"><label class="sr-only" for="site-search">Search products</label><input id="site-search" v-model="query" type="search" autofocus placeholder="Search products and categories..."><button class="button button--gold">Search</button></form>
                 <a v-for="product in results" :key="product.slug" class="search-result" :href="$toUrl('/product/' + product.slug)"><img :src="product.images[0]" :alt="product.name"><span>{{ product.name }}</span></a>
             </div>
         </div>

@@ -22,7 +22,7 @@
             </div>
             <div v-else class="empty-state">
                 <strong>Your cart is empty</strong>
-                <p>Start with new arrivals or the Ladies Suiting storefront.</p>
+                <p>Explore the latest products from our store categories.</p>
                 <a class="button button--gold" :href="$toUrl('/shop')">Shop now</a>
             </div>
         </div>

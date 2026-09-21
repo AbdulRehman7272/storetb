@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Collection;
 use App\Models\User;
+use App\Support\StoreSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +36,7 @@ class CommerceFlowTest extends TestCase
         $this->actingAs($admin)
             ->post(route('admin.products.store'), [
                 'name' => 'One Minute Product',
+                'product_type' => 'single',
                 'regular_price' => 1200,
                 'status' => 'published',
             ])
@@ -43,6 +47,66 @@ class CommerceFlowTest extends TestCase
             'status' => 'published',
             'regular_price' => 1200,
         ]);
+    }
+
+    public function test_admin_can_create_single_product_with_an_image(): void
+    {
+        Storage::fake('public');
+        $admin = User::query()->where('email', 'admin@tbrand.pk')->firstOrFail();
+
+        $this->actingAs($admin)->post(route('admin.products.store'), [
+            'name' => 'Product With Image',
+            'product_type' => 'single',
+            'regular_price' => 4500,
+            'status' => 'published',
+            'image' => UploadedFile::fake()->image('product.jpg', 580, 670),
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $product = Product::query()->where('name', 'Product With Image')->firstOrFail();
+        $media = $product->media()->firstOrFail();
+        Storage::disk('public')->assertExists(str($media->path)->after('storage/')->toString());
+    }
+
+    public function test_admin_can_create_variant_product_and_vendor_codes_are_unique(): void
+    {
+        $admin = User::query()->where('email', 'admin@tbrand.pk')->firstOrFail();
+
+        $response = $this->actingAs($admin)->post(route('admin.products.store'), [
+            'name' => 'Colour Test Product',
+            'product_type' => 'variant',
+            'status' => 'published',
+            'vendor_code' => 'VENDOR-MAIN-01',
+            'variants' => [[
+                'color' => 'Emerald',
+                'swatch' => '#0d5d45',
+                'size' => 'Medium',
+                'sku' => 'TB-COLOUR-EMERALD-M',
+                'vendor_code' => 'VENDOR-VARIANT-01',
+                'regular_price' => 2500,
+                'sale_price' => 2200,
+                'stock' => 6,
+                'enabled' => 1,
+            ]],
+        ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect();
+        $product = Product::query()->where('vendor_code', 'VENDOR-MAIN-01')->firstOrFail();
+        $this->assertSame('variant', $product->product_type);
+        $this->assertSame(6, $product->stock);
+        $this->assertDatabaseHas('product_variants', [
+            'product_id' => $product->id,
+            'vendor_code' => 'VENDOR-VARIANT-01',
+            'sku' => 'TB-COLOUR-EMERALD-M',
+            'is_enabled' => true,
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.products.store'), [
+            'name' => 'Duplicate Vendor Code',
+            'product_type' => 'single',
+            'regular_price' => 1000,
+            'status' => 'draft',
+            'vendor_code' => 'VENDOR-VARIANT-01',
+        ])->assertSessionHasErrors('vendor_code');
     }
 
     public function test_guest_can_checkout_with_cod(): void
@@ -94,6 +158,62 @@ class CommerceFlowTest extends TestCase
         ])->assertOk()->assertJsonStructure(['order_number', 'order_id']);
 
         $this->assertDatabaseHas('orders', ['customer_name' => 'Vue Customer', 'payment_method' => 'cod']);
+    }
+
+    public function test_admin_can_delete_unused_products_and_categories(): void
+    {
+        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $category = Category::query()->create(['name' => 'Temporary Category', 'slug' => 'temporary-category']);
+        $product = Product::query()->create(['name' => 'Temporary Product', 'regular_price' => 100, 'stock' => 0, 'status' => 'draft']);
+
+        $this->actingAs($admin)->delete(route('admin.products.destroy', $product))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->delete(route('admin.categories.destroy', $category))->assertSessionHasNoErrors();
+
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+        $this->assertDatabaseMissing('categories', ['id' => $category->id]);
+    }
+
+    public function test_admin_cannot_delete_a_category_that_is_in_use(): void
+    {
+        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $product = Product::query()->whereNotNull('category_id')->firstOrFail();
+
+        $this->actingAs($admin)->delete(route('admin.categories.destroy', $product->category_id))->assertSessionHasErrors('delete');
+        $this->assertDatabaseHas('categories', ['id' => $product->category_id]);
+    }
+
+    public function test_admin_can_delete_a_collection_without_deleting_its_products(): void
+    {
+        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $product = Product::query()->firstOrFail();
+        $collection = Collection::query()->create(['name' => 'Temporary Collection', 'slug' => 'temporary-collection']);
+        $collection->products()->attach($product);
+
+        $this->actingAs($admin)->delete(route('admin.collections.destroy', $collection))->assertSessionHasNoErrors();
+
+        $this->assertDatabaseMissing('collections', ['id' => $collection->id]);
+        $this->assertDatabaseHas('products', ['id' => $product->id]);
+    }
+
+    public function test_selected_category_can_be_the_root_page_while_super_store_remains_available(): void
+    {
+        $category = Category::query()->firstOrFail();
+        StoreSettings::put('show_super_store', true, 'homepage', 'boolean');
+        StoreSettings::put('homepage_category_slug', $category->slug, 'homepage');
+
+        $this->get('/')->assertOk()->assertSee($category->name);
+        $this->get('/super-store')->assertOk()->assertSee('Super Store');
+    }
+
+    public function test_super_store_can_be_disabled_for_a_single_category_store(): void
+    {
+        $category = Category::query()->firstOrFail();
+        Category::query()->whereKeyNot($category->id)->update(['is_active' => false]);
+        StoreSettings::put('show_super_store', false, 'homepage', 'boolean');
+        StoreSettings::put('homepage_category_slug', null, 'homepage');
+
+        $this->get('/')->assertOk()->assertSee($category->name);
+        $this->get('/super-store')->assertNotFound();
     }
 
     private function checkoutPayload(array $overrides = []): array

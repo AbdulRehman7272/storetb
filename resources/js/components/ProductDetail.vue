@@ -35,10 +35,6 @@
             <section class="product-panel">
                 <p class="eyebrow">{{ category?.name }} · {{ product.subcategory }}</p>
                 <h1 itemprop="name">{{ product.name }}</h1>
-                <div class="rating">
-                    <span aria-hidden="true">★★★★★</span>
-                    <small>{{ product.rating }} ({{ product.reviews }} reviews)</small>
-                </div>
                 <div class="price-row price-row--large">
                     <strong>{{ formatPrice(price) }}</strong>
                     <s v-if="product.original_price">{{ formatPrice(product.original_price) }}</s>
@@ -47,7 +43,7 @@
                 <p>{{ product.short_description }}</p>
                 <dl class="product-facts">
                     <div><dt>Stock</dt><dd>{{ availability }}</dd></div>
-                    <div><dt>SKU</dt><dd>{{ product.sku }}</dd></div>
+                    <div><dt>SKU</dt><dd>{{ selectedVariant?.sku || product.sku }}</dd></div>
                     <div><dt>Delivery</dt><dd>Estimated 2-5 working days in Pakistan</dd></div>
                 </dl>
 
@@ -120,15 +116,6 @@
 
         <ProductGrid :products="related" title="Related Products" eyebrow="You May Also Like" />
 
-        <section class="reviews section-block">
-            <div class="section-head"><div><p class="eyebrow">Customer Notes</p><h2>Reviews</h2></div></div>
-            <div class="review-grid">
-                <article><strong>Beautiful finish</strong><p>The embroidery feels premium and the sizing was accurate.</p><small>Ayesha · Lahore</small></article>
-                <article><strong>Fast delivery</strong><p>Packaging was neat and the product matched the pictures.</p><small>Hina · Karachi</small></article>
-                <article><strong>Worth the price</strong><p>Fabric quality is solid for the price range.</p><small>Sana · Islamabad</small></article>
-            </div>
-        </section>
-
         <div v-if="viewer" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Full-screen product image viewer">
             <div class="viewer">
                 <button class="icon-button modal__close" type="button" aria-label="Close viewer" @click="viewer = false">×</button>
@@ -149,8 +136,10 @@ const props = defineProps({
 });
 
 const { data, addToCart, toggleWishlist, toggleCompare, addRecentlyViewed, createWhatsAppUrl, toUrl } = useCommerce();
-const selectedColor = ref(props.product.colors[0]);
-const selectedSize = ref(props.product.sizes[0]);
+const requestedSku = new URLSearchParams(window.location.search).get('sku');
+const requestedVariant = props.product.variants?.find((item) => item.sku === requestedSku);
+const selectedColor = ref(requestedVariant?.color || props.product.colors[0]);
+const selectedSize = ref(requestedVariant?.size || props.product.sizes[0]);
 const quantity = ref(1);
 const imageIndex = ref(0);
 const viewer = ref(false);
@@ -180,7 +169,10 @@ watch(selectedColor, () => {
     if (variantImage) imageIndex.value = Math.max(0, images.value.indexOf(variantImage));
 });
 
-onMounted(() => addRecentlyViewed(props.product.slug));
+onMounted(() => {
+    if (requestedVariant?.image) imageIndex.value = Math.max(0, images.value.indexOf(requestedVariant.image));
+    addRecentlyViewed(props.product.slug);
+});
 
 function add() {
     if (selectedVariant.value && selectedVariant.value.stock_quantity < quantity.value) return;

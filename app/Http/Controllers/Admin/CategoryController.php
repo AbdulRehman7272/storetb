@@ -54,8 +54,12 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        $category->update(['is_active' => false, 'show_in_navbar' => false]);
-        return back()->with('status', 'Category disabled.');
+        if ($category->products()->exists() || $category->children()->exists()) {
+            return back()->withErrors(['delete' => 'This category is in use. Move its products and child categories before deleting it.']);
+        }
+
+        $category->delete();
+        return back()->with('status', 'Category deleted permanently.');
     }
 
     private function payload(Request $request): array

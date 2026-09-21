@@ -74,7 +74,9 @@ class Product extends Model
 
     public function imageUrl(): string
     {
-        $path = $this->primaryMedia?->path ?: StoreSettings::get('default_product_image', 'admin-assets/img/product/product-1.jpg');
+        $path = $this->primaryMedia?->path
+            ?: $this->variants()->whereNotNull('image')->value('image')
+            ?: StoreSettings::get('default_product_image', 'admin-assets/img/product/product-1.jpg');
         return str_starts_with($path, 'http') ? $path : asset($path);
     }
 }
