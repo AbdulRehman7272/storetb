@@ -20,11 +20,11 @@
     <section v-else-if="page === 'order-confirmation'" class="confirmation">
         <div class="confirmation__mark">✓</div>
         <p class="eyebrow">Order Confirmed</p>
-        <h1>{{ order ? `Thank you, ${order.customer.name}` : 'Mock order confirmation' }}</h1>
+        <h1>{{ order ? `Thank you, ${order.customer.full_name || 'Customer'}` : 'Order confirmation' }}</h1>
         <p>{{ order ? `Your frontend order ${order.number} has been created.` : 'No recent mock order was found in this browser.' }}</p>
         <dl v-if="order" class="totals confirmation__details">
             <div><dt>Order number</dt><dd>{{ order.number }}</dd></div>
-            <div><dt>Payment</dt><dd>{{ order.customer.payment === 'cod' ? 'Cash on Delivery' : 'Bank transfer placeholder' }}</dd></div>
+            <div><dt>Payment</dt><dd>{{ order.customer.payment_method === 'cod' ? 'Cash on Delivery' : 'Bank / Wallet Transfer' }}</dd></div>
             <div><dt>Total</dt><dd>{{ formatPrice(order.total) }}</dd></div>
         </dl>
         <a class="button button--gold" :href="$toUrl('/shop')">Continue shopping</a>

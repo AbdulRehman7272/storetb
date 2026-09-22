@@ -200,6 +200,50 @@ upgradeVariantGallery();
 new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
     if (node.nodeType === 1) upgradeVariantGallery(node);
 }))).observe(document.body, { childList: true, subtree: true });
+document.querySelectorAll('textarea[name="description"]').forEach((textarea) => {
+    if (textarea.dataset.richEditorReady) return;
+    textarea.dataset.richEditorReady = 'true';
+    const editor = document.createElement('div');
+    editor.className = 'admin-rich-editor';
+    editor.innerHTML = `
+        <div class="admin-rich-editor__toolbar" role="toolbar" aria-label="Description formatting">
+            <select data-rich-block aria-label="Text style"><option value="p">Paragraph</option><option value="h2">Heading</option><option value="h3">Subheading</option><option value="blockquote">Quote</option></select>
+            <button type="button" data-rich-command="bold" title="Bold"><strong>B</strong></button>
+            <button type="button" data-rich-command="italic" title="Italic"><em>I</em></button>
+            <button type="button" data-rich-command="underline" title="Underline"><u>U</u></button>
+            <button type="button" data-rich-command="insertUnorderedList" title="Bullet list">&#8226; List</button>
+            <button type="button" data-rich-command="insertOrderedList" title="Numbered list">1. List</button>
+            <button type="button" data-rich-link title="Insert link">Link</button>
+            <button type="button" data-rich-command="removeFormat" title="Clear formatting">Clear</button>
+            <button type="button" data-rich-command="undo" title="Undo">&#8630;</button>
+            <button type="button" data-rich-command="redo" title="Redo">&#8631;</button>
+        </div>
+        <div class="admin-rich-editor__surface" contenteditable="true" role="textbox" aria-multiline="true"></div>`;
+    textarea.before(editor);
+    textarea.hidden = true;
+    const surface = editor.querySelector('.admin-rich-editor__surface');
+    surface.innerHTML = textarea.value;
+    const sync = () => { textarea.value = surface.innerHTML; };
+    editor.querySelectorAll('[data-rich-command]').forEach((button) => button.addEventListener('click', () => {
+        surface.focus();
+        document.execCommand(button.dataset.richCommand, false);
+        sync();
+    }));
+    editor.querySelector('[data-rich-block]').addEventListener('change', (event) => {
+        surface.focus();
+        document.execCommand('formatBlock', false, event.target.value);
+        sync();
+    });
+    editor.querySelector('[data-rich-link]').addEventListener('click', () => {
+        const url = window.prompt('Enter link URL');
+        if (!url) return;
+        surface.focus();
+        document.execCommand('createLink', false, url);
+        sync();
+    });
+    surface.addEventListener('input', sync);
+    textarea.form?.addEventListener('submit', sync);
+});
 </script>
 @stack('scripts')
 </body>

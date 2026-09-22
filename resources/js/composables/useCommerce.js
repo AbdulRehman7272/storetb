@@ -50,6 +50,7 @@ export const state = reactive({
     order: read('tbrand_order', null),
     coupon: read('tbrand_coupon', null),
     toasts: [],
+    paymentMethod: 'cod',
 });
 
 watch(() => state.cart, (value) => write('tbrand_cart', value), { deep: true });
@@ -116,8 +117,13 @@ export function useCommerce() {
     }).filter((item) => item.product));
     const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + (item.price ?? item.product.price) * item.quantity, 0));
     const discount = computed(() => state.coupon?.amount || 0);
-    const shipping = computed(() => subtotal.value >= data.store.free_shipping_threshold || subtotal.value === 0 ? 0 : data.store.shipping_fee);
-    const total = computed(() => Math.max(0, subtotal.value - discount.value + shipping.value));
+    const advanceDiscount = computed(() => state.paymentMethod === 'manual'
+        ? Math.min(subtotal.value, Number(data.store.advance_payment_discount || 0))
+        : 0);
+    const advanceFreeShipping = computed(() => state.paymentMethod === 'manual' && Boolean(data.store.advance_payment_free_shipping));
+    const thresholdFreeShipping = computed(() => Number(data.store.free_shipping_threshold) > 0 && subtotal.value >= Number(data.store.free_shipping_threshold));
+    const shipping = computed(() => thresholdFreeShipping.value || subtotal.value === 0 || advanceFreeShipping.value ? 0 : data.store.shipping_fee);
+    const total = computed(() => Math.max(0, subtotal.value - discount.value - advanceDiscount.value + shipping.value));
 
     const addToCart = (product, variant = {}) => {
         const color = variant.color || product.colors?.[0] || 'Default';
@@ -189,6 +195,8 @@ export function useCommerce() {
         cartItems,
         subtotal,
         discount,
+        advanceDiscount,
+        advanceFreeShipping,
         shipping,
         total,
         toast,

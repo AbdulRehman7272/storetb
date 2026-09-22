@@ -27,7 +27,7 @@
                 @endif
                 <label>Quantity</label>
                 <input type="number" name="quantity" value="1" min="1">
-                <div class="stock" id="variant-stock">Stock: {{ $product->variants->first()?->stock ?? $product->stock }}</div>
+                <div class="stock" id="variant-stock">{{ ($product->variants->first()?->stock ?? $product->stock) > 0 ? 'In stock' : 'Out of stock' }}</div>
                 <button class="btn">Add to Cart</button>
                 <button class="btn secondary" name="buy_now" value="1">Buy Now</button>
             </form>

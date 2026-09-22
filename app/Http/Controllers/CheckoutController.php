@@ -15,6 +15,7 @@ use App\Models\PaymentProof;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\ShippingMethod;
+use App\Support\StoreSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ class CheckoutController extends Controller
 
             $subtotal = $cart->items->sum(fn ($item) => $item->quantity * $item->unit_price);
             $shipping = ShippingMethod::query()->where('is_active', true)->first();
-            $shippingTotal = $shipping && (! $shipping->free_threshold || $subtotal < $shipping->free_threshold) ? $shipping->charge : 0;
+            ['shipping' => $shippingTotal, 'discount' => $paymentDiscount] = $this->paymentAdjustments($subtotal, $request->payment_method);
 
             $order = Order::query()->create([
                 'order_number' => 'TB-' . now()->format('ymd') . '-' . strtoupper(Str::random(5)),
@@ -78,8 +79,9 @@ class CheckoutController extends Controller
                 'landmark' => $request->landmark,
                 'customer_notes' => $request->notes,
                 'subtotal' => $subtotal,
+                'discount_total' => $paymentDiscount,
                 'shipping_total' => $shippingTotal,
-                'grand_total' => $subtotal + $shippingTotal,
+                'grand_total' => max(0, $subtotal - $paymentDiscount + $shippingTotal),
                 'payment_method' => $request->payment_method,
                 'payment_account_id' => $request->payment_account_id,
                 'payment_status' => $request->payment_method === 'manual' ? 'verification_pending' : 'unpaid',
@@ -186,8 +188,8 @@ class CheckoutController extends Controller
             });
             $subtotal = $lines->sum(fn ($line) => $line['price'] * $line['line']['quantity']);
             $shippingMethod = ShippingMethod::query()->where('is_active', true)->first();
-            $shipping = $shippingMethod && (! $shippingMethod->free_threshold || $subtotal < $shippingMethod->free_threshold) ? $shippingMethod->charge : 0;
-            $order = Order::create(['order_number' => 'TB-'.now()->format('ymd').'-'.strtoupper(Str::random(5)), 'customer_id' => $customer->id, 'shipping_method_id' => $shippingMethod?->id, 'customer_name' => $data['full_name'], 'mobile' => $data['mobile'], 'email' => $data['email'] ?? null, 'province' => $data['province'], 'city' => $data['city'], 'address' => $data['address'], 'customer_notes' => $data['notes'] ?? null, 'subtotal' => $subtotal, 'shipping_total' => $shipping, 'grand_total' => $subtotal + $shipping, 'payment_method' => $data['payment_method'], 'payment_account_id' => $data['payment_account_id'] ?? null, 'payment_status' => $data['payment_method'] === 'manual' ? 'verification_pending' : 'unpaid']);
+            ['shipping' => $shipping, 'discount' => $paymentDiscount] = $this->paymentAdjustments($subtotal, $data['payment_method']);
+            $order = Order::create(['order_number' => 'TB-'.now()->format('ymd').'-'.strtoupper(Str::random(5)), 'customer_id' => $customer->id, 'shipping_method_id' => $shippingMethod?->id, 'customer_name' => $data['full_name'], 'mobile' => $data['mobile'], 'email' => $data['email'] ?? null, 'province' => $data['province'], 'city' => $data['city'], 'address' => $data['address'], 'customer_notes' => $data['notes'] ?? null, 'subtotal' => $subtotal, 'discount_total' => $paymentDiscount, 'shipping_total' => $shipping, 'grand_total' => max(0, $subtotal - $paymentDiscount + $shipping), 'payment_method' => $data['payment_method'], 'payment_account_id' => $data['payment_account_id'] ?? null, 'payment_status' => $data['payment_method'] === 'manual' ? 'verification_pending' : 'unpaid']);
             foreach ($lines as $line) {
                 $product = $line['product']; $variant = $line['variant']; $quantity = $line['line']['quantity']; $previous = $line['stock']->stock;
                 OrderItem::create(['order_id' => $order->id, 'product_id' => $product->id, 'product_variant_id' => $variant?->id, 'product_name' => $product->name, 'variant_name' => $variant?->name, 'sku' => $variant?->sku ?: $product->sku, 'image' => $variant?->image ?: $product->primaryMedia?->path, 'quantity' => $quantity, 'unit_price' => $line['price'], 'line_total' => $line['price'] * $quantity]);
@@ -201,7 +203,7 @@ class CheckoutController extends Controller
             $customer->increment('orders_count'); $customer->increment('total_spent', $order->grand_total);
             return $order;
         });
-        return response()->json(['message' => 'Order placed successfully.', 'order_number' => $order->order_number, 'order_id' => $order->id]);
+        return response()->json(['message' => 'Order placed successfully.', 'order_number' => $order->order_number, 'order_id' => $order->id, 'total' => (float) $order->grand_total]);
     }
 
     private function cart(): Cart
@@ -214,5 +216,20 @@ class CheckoutController extends Controller
         request()->session()->put('cart_id', $cart->id);
 
         return $cart;
+    }
+
+    private function paymentAdjustments(float $subtotal, string $paymentMethod): array
+    {
+        $manualPayment = $paymentMethod === 'manual';
+        $threshold = (float) StoreSettings::get('free_shipping_threshold', 5000);
+        $freeForAdvancePayment = (bool) StoreSettings::get('advance_payment_free_shipping', false);
+        $shipping = $subtotal === 0 || ($threshold > 0 && $subtotal >= $threshold) || ($manualPayment && $freeForAdvancePayment)
+            ? 0
+            : (float) StoreSettings::get('shipping_charge', 250);
+        $discount = $manualPayment
+            ? min($subtotal, (float) StoreSettings::get('advance_payment_discount', 0))
+            : 0;
+
+        return compact('shipping', 'discount');
     }
 }

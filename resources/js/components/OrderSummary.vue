@@ -11,10 +11,11 @@
         <div class="progress">
             <span :style="{ width: `${progress}%` }"></span>
         </div>
-        <p class="muted" v-if="subtotal < data.store.free_shipping_threshold">
+        <p class="success" v-if="advanceFreeShipping">Free shipping applied for advance payment.</p>
+        <p class="muted" v-else-if="data.store.free_shipping_threshold > 0 && subtotal < data.store.free_shipping_threshold">
             Add {{ formatPrice(data.store.free_shipping_threshold - subtotal) }} for free shipping.
         </p>
-        <p class="success" v-else>Free shipping unlocked.</p>
+        <p class="success" v-else-if="!shipping">Free shipping unlocked.</p>
 
         <div class="coupon">
             <label for="coupon">Coupon</label>
@@ -28,6 +29,7 @@
             <div><dt>Subtotal</dt><dd>{{ formatPrice(subtotal) }}</dd></div>
             <div><dt>Shipping</dt><dd>{{ shipping ? formatPrice(shipping) : 'Free' }}</dd></div>
             <div><dt>Discount</dt><dd>-{{ formatPrice(discount) }}</dd></div>
+            <div v-if="advanceDiscount"><dt>Advance payment discount</dt><dd>-{{ formatPrice(advanceDiscount) }}</dd></div>
             <div class="totals__total"><dt>Total</dt><dd>{{ formatPrice(total) }}</dd></div>
         </dl>
 
@@ -40,9 +42,11 @@
 import { computed, ref } from 'vue';
 import { useCommerce } from '../composables/useCommerce';
 
-const { data, cartItems, subtotal, shipping, discount, total, applyCoupon, createWhatsAppUrl, formatPrice } = useCommerce();
+const { data, cartItems, subtotal, shipping, discount, advanceDiscount, advanceFreeShipping, total, applyCoupon, createWhatsAppUrl, formatPrice } = useCommerce();
 const couponCode = ref('');
-const progress = computed(() => Math.min(100, (subtotal.value / data.store.free_shipping_threshold) * 100));
+const progress = computed(() => data.store.free_shipping_threshold > 0
+    ? Math.min(100, (subtotal.value / data.store.free_shipping_threshold) * 100)
+    : 100);
 const whatsappUrl = computed(() => createWhatsAppUrl([
     'TBrand cart checkout',
     ...cartItems.value.map((item) => `${item.product.name} (${item.color}/${item.size}) x ${item.quantity} - ${formatPrice(item.product.price * item.quantity)}`),

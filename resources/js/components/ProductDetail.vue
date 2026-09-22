@@ -39,7 +39,6 @@
                     <s v-if="product.original_price">{{ formatPrice(product.original_price) }}</s>
                     <span v-if="discountPercent(product)" class="discount-chip">-{{ discountPercent(product) }}%</span>
                 </div>
-                <p>{{ product.short_description }}</p>
                 <dl class="product-facts">
                     <div><dt>Stock</dt><dd>{{ availability }}</dd></div>
                     <div><dt>SKU</dt><dd>{{ selectedVariant?.sku || product.sku }}</dd></div>
@@ -57,7 +56,7 @@
 
                 <div class="option-group">
                     <div class="option-group__head">
-                        <strong>Size</strong><a :href="$toUrl('/size-guide')">Size guide</a>
+                        <strong>Size</strong>
                     </div>
                     <button v-for="size in availableSizes" :key="size" class="size-button" :class="{ active: size === selectedSize }" type="button" @click="selectedSize = size">{{ size }}</button>
                 </div>
@@ -85,30 +84,27 @@
             </section>
         </div>
 
-        <section class="accordions">
-            <details open>
-                <summary>Full Description</summary>
-                <p itemprop="description">{{ product.description }}</p>
-            </details>
-            <details>
-                <summary>Fabric and Care</summary>
-                <p>{{ product.fabric }} fabric. {{ product.care }}</p>
-            </details>
-            <details>
-                <summary>Shipping and Returns</summary>
-                <p>Free delivery applies above {{ formatPrice(data.store.free_shipping_threshold) }}. Exchanges are available within 14 days for eligible unused items.</p>
-            </details>
-        </section>
+        <div class="product-content-grid">
+            <section class="product-description-section" aria-labelledby="product-description-title">
+                <p class="eyebrow">Product Information</p>
+                <h2 id="product-description-title">Description</h2>
+                <div class="rich-content" itemprop="description" v-html="product.description"></div>
+            </section>
+
+            <section class="product-reviews-section" aria-labelledby="product-reviews-title">
+                <p class="eyebrow">Customer Feedback</p>
+                <h2 id="product-reviews-title">Reviews</h2>
+                <div class="empty-state"><strong>No reviews yet</strong></div>
+            </section>
+        </div>
 
         <section class="section-block">
             <div class="section-head"><div><p class="eyebrow">Pair It Well</p><h2>Frequently Bought Together</h2></div></div>
             <div class="mini-bundle">
-                <div v-for="item in bundle" :key="item.slug">
+                <a v-for="item in recommendations" :key="item.slug" :href="toUrl('/product/' + item.slug)">
                     <img :src="item.images[0]" :alt="item.name">
                     <span>{{ item.name }}</span>
-                </div>
-                <strong>{{ formatPrice(bundle.reduce((sum, item) => sum + item.price, 0)) }}</strong>
-                <button class="button button--gold" type="button" @click="bundle.forEach((item) => addToCart(item))">Add bundle</button>
+                </a>
             </div>
         </section>
 
@@ -160,8 +156,21 @@ const centeredImages = computed(() => {
 const selectedImage = computed(() => images.value[imageIndex.value] || images.value[0]);
 const availableSizes = computed(() => [...new Set((props.product.variants || []).filter((item) => item.color === selectedColor.value).map((item) => item.size).filter(Boolean))]);
 const price = computed(() => selectedVariant.value?.price ?? props.product.price);
-const availability = computed(() => selectedVariant.value ? (selectedVariant.value.stock_quantity > 0 ? `${selectedVariant.value.stock_quantity} in stock` : 'Out of stock') : props.product.stock);
-const bundle = computed(() => [props.product, ...props.related.slice(0, 2)]);
+const availability = computed(() => selectedVariant.value ? (selectedVariant.value.stock_quantity > 0 ? 'In stock' : 'Out of stock') : props.product.stock);
+const recommendationPool = [
+    ...props.related,
+    ...(data.allProducts || []).filter((item) => item.slug !== props.product.slug && !props.related.some((related) => related.slug === item.slug)),
+];
+const randomOrder = new Map(recommendationPool.map((item) => [item.slug, Math.random()]));
+const randomizedRelated = [...props.related].sort((a, b) => randomOrder.get(a.slug) - randomOrder.get(b.slug));
+const randomizedFallback = recommendationPool
+    .filter((item) => !props.related.some((related) => related.slug === item.slug))
+    .sort((a, b) => randomOrder.get(a.slug) - randomOrder.get(b.slug));
+const recommendations = computed(() => [
+    props.product,
+    ...randomizedRelated,
+    ...randomizedFallback,
+].slice(0, 10));
 const whatsappUrl = computed(() => createWhatsAppUrl([
     `TBrand product inquiry`,
     `Product: ${props.product.name}`,

@@ -11,10 +11,10 @@
                 loading="eager"
                 decoding="async"
             >
-            <div v-if="product.images?.length > 1" class="card-carousel" aria-label="Product image carousel">
+            <div v-if="cardImages.length > 1" class="card-carousel" aria-label="Product variant carousel">
                 <button type="button" class="icon-button" aria-label="Previous product image" @click.prevent="move(-1)"><i data-lucide="arrow-left" aria-hidden="true"></i></button>
                 <div class="dots" aria-hidden="true">
-                    <span v-for="(_, dot) in product.images" :key="dot" :class="{ active: dot === index }"></span>
+                    <span v-for="(_, dot) in cardImages" :key="dot" :class="{ active: dot === index }"></span>
                 </div>
                 <button type="button" class="icon-button" aria-label="Next product image" @click.prevent="move(1)"><i data-lucide="arrow-right" aria-hidden="true"></i></button>
             </div>
@@ -54,7 +54,19 @@ defineEmits(['quick-view']);
 const { state, addToCart, toggleWishlist, addRecentlyViewed, formatPrice, discountPercent, toUrl } = useCommerce();
 const index = ref(0);
 
-const activeImage = computed(() => props.product.images?.[index.value] || props.product.images?.[0]);
+const cardImages = computed(() => {
+    const seen = new Set();
+    const variantImages = (props.product.variants || []).flatMap((variant) => {
+        const key = variant.color || variant.id;
+        if (seen.has(key)) return [];
+        seen.add(key);
+        const image = variant.images?.[0] || variant.image;
+        return image ? [image] : [];
+    });
+
+    return variantImages.length ? variantImages : (props.product.images || []);
+});
+const activeImage = computed(() => cardImages.value[index.value] || cardImages.value[0]);
 const visibleColors = computed(() => props.product.colors || []);
 const displayName = computed(() => props.product.variantColor ? `${props.product.name} - ${props.product.variantColor}` : props.product.name);
 const productUrl = computed(() => `${toUrl('/product/' + props.product.slug)}${props.product.variantSku ? `?sku=${encodeURIComponent(props.product.variantSku)}` : ''}`);
@@ -62,7 +74,7 @@ const savedKey = computed(() => props.product.variantSku ? `${props.product.slug
 const wishlistLabel = computed(() => state.wishlist.includes(savedKey.value) ? 'Remove from wishlist' : 'Add to wishlist');
 
 function move(direction) {
-    const total = props.product.images?.length || 1;
+    const total = cardImages.value.length || 1;
     index.value = (index.value + direction + total) % total;
 }
 

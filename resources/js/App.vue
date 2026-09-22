@@ -19,8 +19,7 @@
             <div class="header-actions">
                 <button class="icon-button" type="button" aria-label="Search" @click="searchOpen = true">⌕</button>
                 <a class="icon-button" :href="$toUrl('/wishlist')" aria-label="Wishlist">♡<span v-if="state.wishlist.length">{{ state.wishlist.length }}</span></a>
-                <button class="icon-button" type="button" aria-label="Account placeholder" @click="toast('Account login will arrive in a later backend phase.', 'info')">♙</button>
-                <button class="icon-button" type="button" aria-label="Open cart" @click="cartOpen = true">▣<span v-if="cartCount">{{ cartCount }}</span></button>
+                <button class="icon-button" type="button" aria-label="Open cart" title="Cart" @click="cartOpen = true"><i data-lucide="shopping-cart" aria-hidden="true"></i><span v-if="cartCount">{{ cartCount }}</span></button>
                 <button class="icon-button mobile-only" type="button" aria-label="Open menu" @click="menuOpen = true">☰</button>
             </div>
         </header>

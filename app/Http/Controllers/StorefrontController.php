@@ -80,15 +80,41 @@ class StorefrontController extends Controller
         $categoryData = $categories->map(fn ($category) => $this->categoryData($category))->values();
         $sliderType = StoreSettings::get('slider_content_type', 'categories');
         $sliderRandom = (bool) StoreSettings::get('slider_random', false);
-        $sliderSource = $sliderType === 'products'
-            ? $products->map(fn ($product) => ['id' => $product['id'], 'name' => $product['name'], 'image' => $product['images'][0] ?? null, 'url' => route('product.show', $product['slug']), 'type' => 'product'])
-            : $categoryData->map(fn ($category) => ['id' => $category['id'], 'name' => $category['name'], 'image' => $category['image'], 'url' => $category['url'], 'type' => 'category']);
-        if ($sliderRandom) {
-            $sliderItems = $sliderSource->shuffle()->take(12)->values();
+        if ($sliderType === 'products') {
+            $selectedProducts = $sliderRandom
+                ? $products->shuffle()->take(12)->values()
+                : collect(StoreSettings::get('slider_product_ids', []))->map(fn ($id) => $products->firstWhere('id', (int) $id))->filter()->values();
+            $sliderItems = $selectedProducts->flatMap(function ($product) {
+                if (count($product['variants'] ?? []) === 0) {
+                    return [['id' => $product['id'], 'product_id' => $product['id'], 'name' => $product['name'], 'image' => $product['images'][0] ?? null, 'url' => route('product.show', $product['slug']), 'type' => 'product']];
+                }
+                return collect($product['variants'])->unique('color')->map(fn ($variant) => [
+                    'id' => $variant['id'],
+                    'product_id' => $product['id'],
+                    'name' => $product['name'].' - '.$variant['color'],
+                    'image' => $variant['images'][0] ?? $variant['image'] ?? $product['images'][0] ?? null,
+                    'url' => route('product.show', $product['slug']).'?sku='.urlencode($variant['sku']),
+                    'type' => 'variant',
+                ]);
+            })->filter(fn ($item) => filled($item['image']))->shuffle()->values();
+            $separatedItems = collect();
+            while ($sliderItems->isNotEmpty()) {
+                $lastProductId = $separatedItems->last()['product_id'] ?? null;
+                $nextKey = $sliderItems->search(fn ($item) => $item['product_id'] !== $lastProductId);
+                if ($nextKey === false) $nextKey = $sliderItems->keys()->first();
+                $separatedItems->push($sliderItems->get($nextKey));
+                $sliderItems->forget($nextKey);
+            }
+            $sliderItems = $separatedItems->values();
         } else {
-            $selectedIds = collect(StoreSettings::get($sliderType === 'products' ? 'slider_product_ids' : 'slider_category_ids', []));
-            $sliderById = $sliderSource->keyBy('id');
-            $sliderItems = $selectedIds->map(fn ($id) => $sliderById->get((int) $id))->filter()->values();
+            $sliderSource = $categoryData->map(fn ($category) => ['id' => $category['id'], 'name' => $category['name'], 'image' => $category['image'], 'url' => $category['url'], 'type' => 'category']);
+            if ($sliderRandom) {
+                $sliderItems = $sliderSource->shuffle()->take(12)->values();
+            } else {
+                $selectedIds = collect(StoreSettings::get('slider_category_ids', []));
+                $sliderById = $sliderSource->keyBy('id');
+                $sliderItems = $selectedIds->map(fn ($id) => $sliderById->get((int) $id))->filter()->values();
+            }
         }
         $payload = [
             'page' => $page, 'baseUrl' => url('/'), 'csrfToken' => csrf_token(),
@@ -108,6 +134,8 @@ class StorefrontController extends Controller
                 'hero_description' => StoreSettings::get('homepage_hero_description', 'Explore quality products selected for your store.'),
                 'shipping_fee' => (float) StoreSettings::get('shipping_charge', 250),
                 'free_shipping_threshold' => (float) StoreSettings::get('free_shipping_threshold', 5000),
+                'advance_payment_free_shipping' => (bool) StoreSettings::get('advance_payment_free_shipping', false),
+                'advance_payment_discount' => (float) StoreSettings::get('advance_payment_discount', 0),
                 'coupon' => ['code' => 'TBRAND500', 'amount' => 500],
             ],
             'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),

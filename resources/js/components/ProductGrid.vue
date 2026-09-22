@@ -165,17 +165,24 @@ const quickView = ref(null);
 const quickColor = ref('');
 const quickImage = ref('');
 const display = ref('grid');
-const sort = ref('newest');
+const sort = ref('random');
 const sortOpen = ref(false);
 const limit = ref(8);
 const headingId = `shop-${Math.random().toString(36).slice(2)}`;
 const sortOptions = [
+    { value: 'random', label: 'Shuffled' },
     { value: 'newest', label: 'Newest' },
     { value: 'popularity', label: 'Popularity' },
     { value: 'price-low', label: 'Price: low to high' },
     { value: 'price-high', label: 'Price: high to low' },
     { value: 'discount', label: 'Discount' },
 ];
+const shuffleRanks = new Map();
+function shuffleRank(product) {
+    const key = product.cardKey || product.variantSku || product.slug;
+    if (!shuffleRanks.has(key)) shuffleRanks.set(key, Math.random());
+    return shuffleRanks.get(key);
+}
 const quickVariant = computed(() => quickView.value?.variants?.find((variant) => variant.color === quickColor.value) || null);
 const quickImages = computed(() => quickVariant.value?.images?.length ? quickVariant.value.images : (quickView.value?.images || []));
 
@@ -235,6 +242,7 @@ const filtered = computed(() => {
     });
 
     return [...list].sort((a, b) => {
+        if (sort.value === 'random') return shuffleRank(a) - shuffleRank(b);
         if (sort.value === 'popularity') return b.reviews - a.reviews;
         if (sort.value === 'price-low') return a.price - b.price;
         if (sort.value === 'price-high') return b.price - a.price;
@@ -244,7 +252,7 @@ const filtered = computed(() => {
 });
 
 const visible = computed(() => filtered.value.slice(0, limit.value));
-const sortLabel = computed(() => sortOptions.find((option) => option.value === sort.value)?.label || 'Newest');
+const sortLabel = computed(() => sortOptions.find((option) => option.value === sort.value)?.label || 'Shuffled');
 const chips = computed(() => [
     ...filters.categories.map((value) => ({ key: 'categories', value, label: categoryName(value) })),
     ...filters.subcategories.map((value) => ({ key: 'subcategories', value, label: value })),
