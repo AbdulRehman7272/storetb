@@ -21,20 +21,21 @@
         </a>
         <div class="product-card__body">
             <div class="product-card__actions">
-                <button class="icon-button" type="button" :aria-label="wishlistLabel" :class="{ selected: state.wishlist.includes(product.slug) }" @click="toggleWishlist(product.slug)">♡</button>
-                <button class="icon-button" type="button" aria-label="Quick view product" @click="$emit('quick-view', product)">◎</button>
-                <button class="icon-button" type="button" :aria-label="compareLabel" :class="{ selected: state.compare.includes(product.slug) }" @click="toggleCompare(product.slug)">⇄</button>
+                <button class="icon-button" type="button" :aria-label="wishlistLabel" :title="wishlistLabel" :class="{ selected: state.wishlist.includes(savedKey) }" @click="toggleWishlist(savedKey)">♡</button>
+                <button class="button button--ghost product-card__view" type="button" title="Open quick view" @click="$emit('quick-view', product)">View</button>
             </div>
             <a class="product-card__title" :href="productUrl">{{ displayName }}</a>
-            <p class="muted">{{ product.subcategory }} · {{ product.fabric }}</p>
             <div class="price-row">
                 <strong>{{ formatPrice(product.price) }}</strong>
                 <s v-if="product.original_price">{{ formatPrice(product.original_price) }}</s>
             </div>
             <div class="swatches" aria-label="Available colors">
-                <span v-for="color in visibleColors" :key="color" :title="color" :style="{ '--swatch': swatch(color) }"></span>
+                <span v-for="color in visibleColors" :key="color" :title="color" :class="{ selected: color === product.variantColor }" :style="{ '--swatch': swatch(color) }"></span>
             </div>
-            <button class="button button--gold button--full product-card__cart" type="button" @click="addVariantToCart">Add to cart</button>
+            <div class="product-card__purchase">
+                <button class="button button--gold" type="button" @click="addVariantToCart">Add to cart</button>
+                <button class="button button--ghost" type="button" @click="buyNow">Buy now</button>
+            </div>
         </div>
     </article>
 </template>
@@ -50,15 +51,15 @@ const props = defineProps({
 
 defineEmits(['quick-view']);
 
-const { state, addToCart, toggleWishlist, toggleCompare, addRecentlyViewed, formatPrice, discountPercent, toUrl } = useCommerce();
+const { state, addToCart, toggleWishlist, addRecentlyViewed, formatPrice, discountPercent, toUrl } = useCommerce();
 const index = ref(0);
 
 const activeImage = computed(() => props.product.images?.[index.value] || props.product.images?.[0]);
-const visibleColors = computed(() => props.product.variantColor ? [props.product.variantColor] : props.product.colors || []);
+const visibleColors = computed(() => props.product.colors || []);
 const displayName = computed(() => props.product.variantColor ? `${props.product.name} - ${props.product.variantColor}` : props.product.name);
 const productUrl = computed(() => `${toUrl('/product/' + props.product.slug)}${props.product.variantSku ? `?sku=${encodeURIComponent(props.product.variantSku)}` : ''}`);
-const wishlistLabel = computed(() => state.wishlist.includes(props.product.slug) ? 'Remove from wishlist' : 'Add to wishlist');
-const compareLabel = computed(() => state.compare.includes(props.product.slug) ? 'Remove from compare' : 'Compare product');
+const savedKey = computed(() => props.product.variantSku ? `${props.product.slug}::${props.product.variantSku}` : props.product.slug);
+const wishlistLabel = computed(() => state.wishlist.includes(savedKey.value) ? 'Remove from wishlist' : 'Add to wishlist');
 
 function move(direction) {
     const total = props.product.images?.length || 1;
@@ -67,6 +68,11 @@ function move(direction) {
 
 function addVariantToCart() {
     addToCart(props.product, { color: props.product.variantColor || props.product.colors?.[0] });
+}
+
+function buyNow() {
+    addVariantToCart();
+    window.location.href = toUrl('/checkout');
 }
 
 function swatch(color) {

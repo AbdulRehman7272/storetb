@@ -105,6 +105,38 @@ document.addEventListener('change', (event) => {
     const input = event.target.closest('[data-admin-image-input]');
     if (!input || !input.files?.[0]) return;
     const picker = input.closest('[data-admin-image-picker]');
+    if (input.multiple) {
+        const selectedFiles = [...(input._galleryFiles || []), ...input.files].filter((file, index, files) =>
+            files.findIndex((item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified) === index
+        ).slice(0, 10);
+        input._galleryFiles = selectedFiles;
+        const selectedTransfer = new DataTransfer();
+        selectedFiles.forEach((file) => selectedTransfer.items.add(file));
+        input.files = selectedTransfer.files;
+        const gallery = picker.querySelector('[data-gallery-preview]');
+        gallery.querySelectorAll('[data-new-preview]').forEach((item) => item.remove());
+        selectedFiles.forEach((file, fileIndex) => {
+            const item = document.createElement('span');
+            item.className = 'variant-gallery-item';
+            item.dataset.newPreview = 'true';
+            item.dataset.fileIndex = fileIndex;
+            const image = document.createElement('img');
+            image.alt = file.name;
+            image.src = URL.createObjectURL(file);
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'variant-gallery-remove';
+            remove.dataset.removeGalleryImage = 'true';
+            remove.setAttribute('aria-label', 'Remove image');
+            remove.innerHTML = '&times;';
+            item.append(image, remove);
+            gallery.append(item);
+        });
+        const empty = gallery.querySelector('[data-gallery-empty]');
+        if (empty) empty.hidden = true;
+        picker.classList.add('has-selection');
+        return;
+    }
     const preview = picker.querySelector('[data-admin-image-preview]');
     const empty = picker.querySelector('[data-admin-image-empty]');
     const state = picker.querySelector('[data-admin-image-state]');
@@ -118,6 +150,56 @@ document.addEventListener('change', (event) => {
     };
     reader.readAsDataURL(input.files[0]);
 });
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-remove-gallery-image]');
+    if (!button) return;
+    event.preventDefault();
+    const item = button.closest('.variant-gallery-item');
+    const picker = button.closest('[data-admin-gallery-picker], .admin-variant-gallery');
+    const input = picker?.querySelector('input[type="file"][multiple]');
+    const existingPath = item?.dataset.existingImage;
+    if (existingPath && input) {
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = input.name.replace('[images][]', '[remove_images][]');
+        hidden.value = existingPath;
+        picker.querySelector('[data-removed-images]')?.append(hidden);
+    } else if (item?.dataset.fileIndex && input) {
+        const removedIndex = Number(item.dataset.fileIndex);
+        input._galleryFiles = (input._galleryFiles || [...input.files]).filter((file, index) => index !== removedIndex);
+        const transfer = new DataTransfer();
+        input._galleryFiles.forEach((file) => transfer.items.add(file));
+        input.files = transfer.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+    }
+    item?.remove();
+    const gallery = picker?.querySelector('[data-gallery-preview]');
+    const empty = gallery?.querySelector('[data-gallery-empty]');
+    if (empty && !gallery.querySelector('.variant-gallery-item')) empty.hidden = false;
+});
+const upgradeVariantGallery = (root = document) => {
+    root.querySelectorAll?.('.variant-card input[type="file"][name$="[image]"]').forEach((input) => {
+        input.name = input.name.replace(/\[image\]$/, '[images][]');
+        input.multiple = true;
+        input.dataset.adminGalleryInput = 'true';
+        const picker = input.closest('[data-admin-image-picker]');
+        picker?.classList.add('admin-variant-gallery');
+        const preview = picker?.querySelector('.admin-image-field__preview');
+        if (preview) {
+            preview.classList.add('variant-gallery-preview');
+            preview.dataset.galleryPreview = 'true';
+        }
+        const label = picker?.querySelector('.admin-image-field__label');
+        const action = picker?.querySelector('.action-btn');
+        if (label) label.textContent = 'Variant images';
+        if (action) action.lastChild.textContent = 'Choose multiple images';
+    });
+};
+upgradeVariantGallery();
+new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
+    if (node.nodeType === 1) upgradeVariantGallery(node);
+}))).observe(document.body, { childList: true, subtree: true });
 </script>
 @stack('scripts')
 </body>

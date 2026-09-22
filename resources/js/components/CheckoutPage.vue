@@ -9,7 +9,7 @@
                     <label>Email (optional)<input v-model.trim="form.email" type="email" autocomplete="email" :class="{ invalid: errors.email }"><small>{{ errors.email }}</small></label>
                 </div></details>
                 <details open><summary><span>2</span> Shipping Address</summary><div class="form-grid">
-                    <label class="span-2">Complete address *<input v-model.trim="form.address" autocomplete="street-address" :class="{ invalid: errors.address }"><small>{{ errors.address }}</small></label>
+                    <label>Complete address *<input v-model.trim="form.address" autocomplete="street-address" :class="{ invalid: errors.address }"><small>{{ errors.address }}</small></label>
                     <label>Province *<select v-model="form.province" :class="{ invalid: errors.province }"><option value="">Select province</option><option>Punjab</option><option>Sindh</option><option>Khyber Pakhtunkhwa</option><option>Balochistan</option><option>Islamabad Capital Territory</option><option>Gilgit-Baltistan</option><option>Azad Kashmir</option></select><small>{{ errors.province }}</small></label>
                     <label>City *<input v-model.trim="form.city" autocomplete="address-level2" :class="{ invalid: errors.city }"><small>{{ errors.city }}</small></label>
                 </div></details>
@@ -17,7 +17,15 @@
                     <div class="payment-choice"><label class="radio-card"><input v-model="form.payment_method" type="radio" value="cod"> <span><strong>Cash on Delivery</strong><small>Pay when your order arrives</small></span></label><label class="radio-card"><input v-model="form.payment_method" type="radio" value="manual"> <span><strong>Bank / Wallet Transfer</strong><small>Send payment and upload proof</small></span></label></div>
                     <div v-if="form.payment_method === 'manual'" class="bank-payment-panel">
                         <label>Payment account *<select v-model="form.payment_account_id" :class="{ invalid: errors.payment_account_id }"><option value="">Select account</option><option v-for="account in data.paymentAccounts" :key="account.id" :value="account.id">{{ account.name }} · {{ account.account_title }}</option></select><small>{{ errors.payment_account_id }}</small></label>
-                        <article v-if="selectedAccount" class="account-details"><strong>{{ selectedAccount.name }}</strong><span>{{ selectedAccount.account_title }}</span><span v-if="selectedAccount.account_number">Account: {{ selectedAccount.account_number }}</span><span v-if="selectedAccount.iban">IBAN: {{ selectedAccount.iban }}</span><p>{{ selectedAccount.instructions }}</p></article>
+                        <article v-if="selectedAccount" class="account-details">
+                            <header><span>Transfer details</span><strong>{{ selectedAccount.name }}</strong></header>
+                            <dl>
+                                <div><dt>Account title</dt><dd>{{ selectedAccount.account_title }}</dd></div>
+                                <div v-if="selectedAccount.account_number"><dt>Account number</dt><dd>{{ selectedAccount.account_number }}</dd></div>
+                                <div v-if="selectedAccount.iban"><dt>IBAN</dt><dd>{{ selectedAccount.iban }}</dd></div>
+                            </dl>
+                            <p v-if="selectedAccount.instructions">{{ selectedAccount.instructions }}</p>
+                        </article>
                         <div class="form-grid"><label>Transaction reference<input v-model.trim="form.transaction_reference"></label><label>Payment screenshot<input type="file" accept="image/*,.pdf" @change="proof = $event.target.files[0]"></label></div>
                     </div>
                     <label>Order notes<textarea v-model.trim="form.notes" rows="3" placeholder="Delivery instructions"></textarea></label>

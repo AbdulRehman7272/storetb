@@ -10,7 +10,7 @@ class ProductVariant extends Model
 
     protected function casts(): array
     {
-        return ['is_enabled' => 'boolean'];
+        return ['is_enabled' => 'boolean', 'images' => 'array'];
     }
 
     public function product()

@@ -8,7 +8,7 @@
             </div>
         </div>
         <div v-if="items.length" class="product-grid" :class="{ 'compare-grid': page === 'compare' }">
-            <ProductCard v-for="product in items" :key="product.slug" :product="product" />
+            <ProductCard v-for="product in items" :key="product.cardKey || product.slug" :product="product" />
         </div>
         <div v-else class="empty-state">
             <strong>{{ label.empty }}</strong>

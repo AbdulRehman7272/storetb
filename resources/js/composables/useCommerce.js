@@ -69,7 +69,19 @@ export function discountPercent(product) {
 }
 
 export function productBySlug(slug) {
-    return (data.allProducts || data.products || []).find((product) => product.slug === slug);
+    const [productSlug, variantSku] = String(slug).split('::');
+    const product = (data.allProducts || data.products || []).find((item) => item.slug === productSlug);
+    if (!product || !variantSku) return product;
+    const variant = product.variants?.find((item) => item.sku === variantSku);
+    return variant ? {
+        ...product,
+        cardKey: slug,
+        variantColor: variant.color,
+        variantSku: variant.sku,
+        price: variant.price,
+        original_price: variant.original_price,
+        images: variant.images?.length ? variant.images : product.images,
+    } : product;
 }
 
 export function categoryBySlug(slug) {
@@ -90,10 +102,18 @@ export function useCommerce() {
     };
 
     const cartCount = computed(() => state.cart.reduce((sum, item) => sum + item.quantity, 0));
-    const cartItems = computed(() => state.cart.map((item) => ({
-        ...item,
-        product: productBySlug(item.slug),
-    })).filter((item) => item.product));
+    const cartItems = computed(() => state.cart.map((item) => {
+        const product = productBySlug(item.slug);
+        const variant = product?.variants?.find((entry) => entry.id === item.variant_id)
+            || product?.variants?.find((entry) => entry.color === item.color && (!entry.size || entry.size === item.size));
+        return {
+            ...item,
+            product,
+            variant,
+            image: variant?.images?.[0] || variant?.image || product?.images?.[0],
+            price: variant?.price ?? item.price ?? product?.price,
+        };
+    }).filter((item) => item.product));
     const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + (item.price ?? item.product.price) * item.quantity, 0));
     const discount = computed(() => state.coupon?.amount || 0);
     const shipping = computed(() => subtotal.value >= data.store.free_shipping_threshold || subtotal.value === 0 ? 0 : data.store.shipping_fee);

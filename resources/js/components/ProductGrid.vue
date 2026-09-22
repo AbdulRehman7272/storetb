@@ -84,11 +84,11 @@
                         <span>{{ item }}</span>
                     </label>
                 </fieldset>
-                <fieldset>
-                    <legend>Fabric</legend>
-                    <label v-for="item in options.fabrics" :key="item">
-                        <input v-model="filters.fabrics" type="checkbox" :value="item">
-                        <span>{{ item }}</span>
+                <fieldset v-if="options.collections.length">
+                    <legend>Collection</legend>
+                    <label v-for="item in options.collections" :key="item.slug">
+                        <input v-model="filters.collections" type="checkbox" :value="item.slug">
+                        <span>{{ item.name }}</span>
                     </label>
                 </fieldset>
                 <fieldset>
@@ -100,7 +100,7 @@
 
             <div>
                 <div v-if="filtered.length" class="product-grid" :class="`product-grid--${display}`">
-                    <ProductCard v-for="product in visible" :key="product.cardKey || product.slug" :product="product" :display="display" @quick-view="quickView = $event" />
+                    <ProductCard v-for="product in visible" :key="product.cardKey || product.slug" :product="product" :display="display" @quick-view="openQuickView" />
                 </div>
                 <div v-else class="empty-state">
                     <strong>No matching products</strong>
@@ -114,17 +114,29 @@
         </div>
 
         <div v-if="quickView" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Quick view">
-            <div class="modal">
+            <div class="modal quick-view-modal">
                 <button class="icon-button modal__close" type="button" aria-label="Close quick view" @click="quickView = null">×</button>
-                <img :src="quickView.images[0]" :alt="quickView.name" width="360" height="450">
-                <div>
+                <div class="quick-view-gallery">
+                    <img class="quick-view-gallery__main" :src="quickImage || quickImages[0]" :alt="quickView.name">
+                </div>
+                <div class="quick-view-info">
                     <p class="eyebrow">Quick View</p>
                     <h3>{{ quickView.name }}</h3>
                     <p>{{ quickView.short_description }}</p>
-                    <p class="price-row"><strong>{{ formatPrice(quickView.price) }}</strong><s v-if="quickView.original_price">{{ formatPrice(quickView.original_price) }}</s></p>
+                    <p class="price-row"><strong>{{ formatPrice(quickVariant?.price ?? quickView.price) }}</strong><s v-if="quickVariant?.original_price ?? quickView.original_price">{{ formatPrice(quickVariant?.original_price ?? quickView.original_price) }}</s></p>
+                    <div class="quick-view-colors" v-if="quickView.colors?.length">
+                        <strong>Colour</strong>
+                        <button v-for="color in quickView.colors" :key="color" type="button" :class="{ selected: quickColor === color }" @click="selectQuickColor(color)">
+                            <span :style="{ '--swatch': quickView.colorSwatches?.[color] || '#777' }"></span>{{ color }}
+                        </button>
+                    </div>
+                    <div class="quick-view-thumbs" aria-label="Variant images">
+                        <button v-for="image in quickImages" :key="image" type="button" :class="{ selected: quickImage === image }" @click="quickImage = image"><img :src="image" alt=""></button>
+                    </div>
                     <div class="modal__actions">
                         <a class="button button--ghost" :href="$toUrl('/product/' + quickView.slug)">View details</a>
-                        <button class="button button--gold" type="button" @click="addToCart(quickView, { color: quickView.variantColor || quickView.colors?.[0] })">Add to cart</button>
+                        <button class="button button--gold" type="button" @click="addQuickToCart">Add to cart</button>
+                        <button class="button button--ghost" type="button" @click="buyQuickNow">Buy now</button>
                     </div>
                 </div>
             </div>
@@ -150,6 +162,8 @@ const props = defineProps({
 const { data, addToCart } = useCommerce();
 const drawer = ref(false);
 const quickView = ref(null);
+const quickColor = ref('');
+const quickImage = ref('');
 const display = ref('grid');
 const sort = ref('newest');
 const sortOpen = ref(false);
@@ -162,6 +176,8 @@ const sortOptions = [
     { value: 'price-high', label: 'Price: high to low' },
     { value: 'discount', label: 'Discount' },
 ];
+const quickVariant = computed(() => quickView.value?.variants?.find((variant) => variant.color === quickColor.value) || null);
+const quickImages = computed(() => quickVariant.value?.images?.length ? quickVariant.value.images : (quickView.value?.images || []));
 
 const filters = reactive({
     search: props.initialSearch,
@@ -169,7 +185,7 @@ const filters = reactive({
     subcategories: [],
     colors: [],
     sizes: [],
-    fabrics: [],
+    collections: [],
     min: 0,
     max: 12000,
     available: false,
@@ -189,8 +205,8 @@ const source = computed(() => {
             cardKey: `${product.slug}-${color}`,
             variantColor: color,
             variantSku: variant?.sku,
-            colors: [color],
-            images: product.images?.length ? [variant?.image || product.images[index % product.images.length], ...product.images.filter((image) => image !== (variant?.image || product.images[index % product.images.length]))] : [],
+            colors: product.colors,
+            images: variant?.images?.length ? variant.images : (product.images?.length ? [variant?.image || product.images[index % product.images.length], ...product.images.filter((image) => image !== (variant?.image || product.images[index % product.images.length]))] : []),
         };
     }));
 });
@@ -199,7 +215,7 @@ const options = computed(() => ({
     subcategories: unique(source.value.map((item) => item.subcategory)),
     colors: unique(source.value.flatMap((item) => item.colors || [])),
     sizes: unique(source.value.flatMap((item) => item.sizes || [])),
-    fabrics: unique(source.value.map((item) => item.fabric)),
+    collections: (data.collections || []).filter((collection) => source.value.some((product) => product.collections?.includes(collection.slug))),
 }));
 
 const filtered = computed(() => {
@@ -211,7 +227,7 @@ const filtered = computed(() => {
             && (!filters.subcategories.length || filters.subcategories.includes(product.subcategory))
             && (!filters.colors.length || product.colors.some((item) => filters.colors.includes(item)))
             && (!filters.sizes.length || product.sizes.some((item) => filters.sizes.includes(item)))
-            && (!filters.fabrics.length || filters.fabrics.includes(product.fabric))
+            && (!filters.collections.length || product.collections?.some((item) => filters.collections.includes(item)))
             && product.price >= filters.min
             && product.price <= filters.max
             && (!filters.available || product.stock === 'In stock')
@@ -234,7 +250,7 @@ const chips = computed(() => [
     ...filters.subcategories.map((value) => ({ key: 'subcategories', value, label: value })),
     ...filters.colors.map((value) => ({ key: 'colors', value, label: value })),
     ...filters.sizes.map((value) => ({ key: 'sizes', value, label: value })),
-    ...filters.fabrics.map((value) => ({ key: 'fabrics', value, label: value })),
+    ...filters.collections.map((value) => ({ key: 'collections', value, label: collectionName(value) })),
     filters.available ? { key: 'available', value: true, label: 'In stock' } : null,
     filters.discounted ? { key: 'discounted', value: true, label: 'Discounted' } : null,
 ].filter(Boolean));
@@ -245,6 +261,10 @@ function unique(values) {
 
 function categoryName(slug) {
     return categories.value.find((category) => category.slug === slug)?.name || slug;
+}
+
+function collectionName(slug) {
+    return data.collections?.find((collection) => collection.slug === slug)?.name || slug;
 }
 
 function removeChip(chip) {
@@ -261,7 +281,7 @@ function clearFilters() {
     filters.subcategories = [];
     filters.colors = [];
     filters.sizes = [];
-    filters.fabrics = [];
+    filters.collections = [];
     filters.min = 0;
     filters.max = 12000;
     filters.available = false;
@@ -271,5 +291,25 @@ function clearFilters() {
 function setSort(value) {
     sort.value = value;
     sortOpen.value = false;
+}
+
+function openQuickView(product) {
+    quickView.value = product;
+    quickColor.value = product.variantColor || product.colors?.[0] || '';
+    quickImage.value = (product.variants?.find((variant) => variant.color === quickColor.value)?.images || product.images || [])[0] || '';
+}
+
+function selectQuickColor(color) {
+    quickColor.value = color;
+    quickImage.value = quickImages.value[0] || '';
+}
+
+function addQuickToCart() {
+    addToCart(quickView.value, { color: quickColor.value, variant: quickVariant.value });
+}
+
+function buyQuickNow() {
+    addQuickToCart();
+    window.location.href = `${data.baseUrl || ''}/checkout`;
 }
 </script>

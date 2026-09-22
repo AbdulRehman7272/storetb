@@ -255,6 +255,18 @@ class ProductController extends Controller
             } elseif (! $variant->image && isset($colourImages[Str::slug($row['color'])])) {
                 $variant->update(['image' => $colourImages[Str::slug($row['color'])]]);
             }
+            $removedImages = collect($row['remove_images'] ?? []);
+            $gallery = collect($variant->images ?: [])->filter()->reject(fn ($path) => $removedImages->contains($path));
+            $removedImages->each(fn ($path) => $this->deletePublicFile($path));
+            if ($removedImages->contains($variant->image)) $variant->update(['image' => null]);
+            foreach ($request->file("variants.$index.images", []) as $galleryImage) {
+                if ($galleryImage->isValid()) {
+                    $gallery->push('storage/'.$galleryImage->store('variants', 'public'));
+                }
+            }
+            if ($variant->image) $gallery->prepend($variant->image);
+            $gallery = $gallery->unique()->values();
+            $variant->update(['images' => $gallery->all(), 'image' => $variant->image ?: $gallery->first()]);
             if ($variant->image) $colourImages[Str::slug($row['color'])] = $variant->image;
             $variant->optionValues()->sync(collect([$color->id, $size?->id])->filter());
             $kept[] = $variant->id;

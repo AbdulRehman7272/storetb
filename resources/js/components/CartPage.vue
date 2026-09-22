@@ -5,7 +5,7 @@
             <h1>Your Cart</h1>
             <div v-if="cartItems.length" class="line-items">
                 <article v-for="item in cartItems" :key="item.key" class="line-item">
-                    <img :src="item.product.images[0]" :alt="item.product.name">
+                    <img :src="item.image" :alt="`${item.product.name} - ${item.color}`">
                     <div>
                         <a :href="$toUrl('/product/' + item.product.slug)"><strong>{{ item.product.name }}</strong></a>
                         <p>{{ item.color }} / {{ item.size }}</p>
@@ -16,7 +16,7 @@
                         <input :value="item.quantity" type="number" min="1" aria-label="Quantity" @change="updateQuantity(item.key, Number($event.target.value))">
                         <button type="button" aria-label="Increase quantity" @click="updateQuantity(item.key, item.quantity + 1)">+</button>
                     </div>
-                    <strong>{{ formatPrice(item.product.price * item.quantity) }}</strong>
+                    <strong>{{ formatPrice(item.price * item.quantity) }}</strong>
                     <button class="icon-button" type="button" aria-label="Remove item" @click="removeFromCart(item.key)">×</button>
                 </article>
             </div>

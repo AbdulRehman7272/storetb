@@ -127,10 +127,11 @@ class StorefrontController extends Controller
         $variants = $product->variants->where('is_enabled', true)->map(function ($variant) {
             $colour = $variant->optionValues->firstWhere('option.slug', 'colour');
             $size = $variant->optionValues->firstWhere('option.slug', 'size');
-            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $this->assetUrl($variant->image)];
+            $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->map(fn ($image) => $this->assetUrl($image))->values();
+            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images];
         })->values();
         $images = collect($product->media->map(fn ($media) => $this->assetUrl($media->path))->filter()->all())
-            ->merge($variants->pluck('image')->filter()->all())
+            ->merge($variants->flatMap(fn ($variant) => $variant['images'])->filter()->all())
             ->unique()
             ->values();
         if ($images->isEmpty()) $images->push($product->imageUrl());

@@ -17,15 +17,14 @@
                     <button class="icon-button" type="button" aria-label="Previous product image" @click="moveImage(-1)">‹</button>
                     <div class="cylinder-slider__stage">
                         <button
-                            v-for="(image, i) in cylinderImages"
-                            :key="`${image}-${i}`"
+                            v-for="item in centeredImages"
+                            :key="`${item.image}-${item.index}`"
                             class="cylinder-slide"
-                            :class="{ active: cylinderPosition(i) === 0 }"
-                            :style="slideStyle(i)"
+                            :class="{ active: item.index === imageIndex }"
                             type="button"
-                            @click="imageIndex = i % images.length"
+                            @click="imageIndex = item.index"
                         >
-                            <img :src="image" :alt="`${product.name} image ${i + 1}`">
+                            <img :src="item.image" :alt="`${product.name} image ${item.index + 1}`">
                         </button>
                     </div>
                     <button class="icon-button" type="button" aria-label="Next product image" @click="moveImage(1)">›</button>
@@ -76,7 +75,6 @@
 
                 <div class="inline-actions">
                     <button type="button" @click="toggleWishlist(product.slug)">♡ Wishlist</button>
-                    <button type="button" @click="toggleCompare(product.slug)">⇄ Compare</button>
                 </div>
 
                 <div class="trust-strip trust-strip--detail">
@@ -135,7 +133,7 @@ const props = defineProps({
     related: { type: Array, default: () => [] },
 });
 
-const { data, addToCart, toggleWishlist, toggleCompare, addRecentlyViewed, createWhatsAppUrl, toUrl } = useCommerce();
+const { data, addToCart, toggleWishlist, addRecentlyViewed, createWhatsAppUrl, toUrl } = useCommerce();
 const requestedSku = new URLSearchParams(window.location.search).get('sku');
 const requestedVariant = props.product.variants?.find((item) => item.sku === requestedSku);
 const selectedColor = ref(requestedVariant?.color || props.product.colors[0]);
@@ -145,10 +143,21 @@ const imageIndex = ref(0);
 const viewer = ref(false);
 
 const category = computed(() => categoryBySlug(props.product.category));
-const images = computed(() => props.product.images || []);
-const cylinderImages = computed(() => images.value);
-const selectedImage = computed(() => images.value[imageIndex.value] || images.value[0]);
 const selectedVariant = computed(() => props.product.variants?.find((item) => item.color === selectedColor.value && (!item.size || item.size === selectedSize.value)) || null);
+const images = computed(() => selectedVariant.value?.images?.length
+    ? selectedVariant.value.images
+    : (selectedVariant.value?.image ? [selectedVariant.value.image] : (props.product.images || [])));
+const centeredImages = computed(() => {
+    const total = images.value.length;
+    if (!total) return [];
+    const center = Math.floor(total / 2);
+    const start = (imageIndex.value - center + total) % total;
+    return Array.from({ length: total }, (_, offset) => {
+        const index = (start + offset) % total;
+        return { image: images.value[index], index };
+    });
+});
+const selectedImage = computed(() => images.value[imageIndex.value] || images.value[0]);
 const availableSizes = computed(() => [...new Set((props.product.variants || []).filter((item) => item.color === selectedColor.value).map((item) => item.size).filter(Boolean))]);
 const price = computed(() => selectedVariant.value?.price ?? props.product.price);
 const availability = computed(() => selectedVariant.value ? (selectedVariant.value.stock_quantity > 0 ? `${selectedVariant.value.stock_quantity} in stock` : 'Out of stock') : props.product.stock);
@@ -165,12 +174,11 @@ const whatsappUrl = computed(() => createWhatsAppUrl([
 
 watch(selectedColor, () => {
     selectedSize.value = availableSizes.value[0] || 'One Size';
-    const variantImage = selectedVariant.value?.image;
-    if (variantImage) imageIndex.value = Math.max(0, images.value.indexOf(variantImage));
+    imageIndex.value = 0;
 });
 
 onMounted(() => {
-    if (requestedVariant?.image) imageIndex.value = Math.max(0, images.value.indexOf(requestedVariant.image));
+    imageIndex.value = 0;
     addRecentlyViewed(props.product.slug);
 });
 
@@ -187,29 +195,6 @@ function buyNow() {
 function moveImage(direction) {
     const total = images.value.length || 1;
     imageIndex.value = (imageIndex.value + direction + total) % total;
-}
-
-function cylinderPosition(index) {
-    const total = images.value.length || 1;
-    const normalized = index % total;
-    let distance = normalized - imageIndex.value;
-
-    if (distance > total / 2) distance -= total;
-    if (distance < -total / 2) distance += total;
-
-    return distance;
-}
-
-function slideStyle(index) {
-    const position = cylinderPosition(index);
-    const hidden = Math.abs(position) > 2;
-
-    return {
-        transform: `translateX(${position * 74}px) translateZ(${120 - Math.abs(position) * 34}px) rotateY(${-position * 24}deg) scale(${1 - Math.abs(position) * 0.08})`,
-        opacity: hidden ? 0 : 1 - Math.abs(position) * 0.22,
-        zIndex: 10 - Math.abs(position),
-        pointerEvents: hidden ? 'none' : 'auto',
-    };
 }
 
 function swatch(color) {

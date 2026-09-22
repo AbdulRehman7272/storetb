@@ -62,6 +62,10 @@ class StoreProductRequest extends FormRequest
             'variants.*.cost_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock' => ['required_with:variants', 'integer', 'min:0'],
             'variants.*.image' => ['nullable', 'image', 'max:4096'],
+            'variants.*.images' => ['nullable', 'array', 'max:10'],
+            'variants.*.images.*' => ['image', 'max:4096'],
+            'variants.*.remove_images' => ['nullable', 'array'],
+            'variants.*.remove_images.*' => ['string', 'max:500'],
             'variants.*.enabled' => ['nullable', 'boolean'],
         ];
     }

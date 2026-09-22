@@ -65,7 +65,6 @@
                 <a :href="$toUrl('/categories')">All Categories</a>
                 <a :href="$toUrl('/shop')">Products</a>
                 <a :href="$toUrl('/wishlist')">Wishlist</a>
-                <a :href="$toUrl('/compare')">Compare</a>
             </div>
             <div>
                 <strong>Support</strong>
@@ -264,7 +263,7 @@ const CartDrawer = defineComponent({
         <div v-if="open" class="drawer-backdrop" @click.self="$emit('close')">
             <aside class="cart-drawer" aria-label="Cart drawer">
                 <div class="filter-panel__head"><strong>Cart</strong><button class="icon-button" type="button" aria-label="Close cart" @click="$emit('close')">×</button></div>
-                <div v-if="cartItems.length" class="line-items line-items--drawer"><article v-for="item in cartItems" :key="item.key" class="line-item"><img :src="item.product.images[0]" :alt="item.product.name"><div><strong>{{ item.product.name }}</strong><p>{{ item.color }} / {{ item.size }}</p><div class="quantity"><button @click="updateQuantity(item.key, item.quantity - 1)">−</button><input :value="item.quantity" readonly><button @click="updateQuantity(item.key, item.quantity + 1)">+</button></div></div><button class="icon-button" @click="removeFromCart(item.key)">×</button></article></div>
+                <div v-if="cartItems.length" class="line-items line-items--drawer"><article v-for="item in cartItems" :key="item.key" class="line-item"><img :src="item.image" :alt="item.product.name + ' - ' + item.color"><div><strong>{{ item.product.name }}</strong><p>{{ item.color }} / {{ item.size }}</p><div class="quantity"><button @click="updateQuantity(item.key, item.quantity - 1)">−</button><input :value="item.quantity" readonly><button @click="updateQuantity(item.key, item.quantity + 1)">+</button></div></div><button class="icon-button" @click="removeFromCart(item.key)">×</button></article></div>
                 <div v-else class="empty-state"><strong>Your cart is empty</strong><a class="button button--gold" :href="$toUrl('/shop')">Shop now</a></div>
                 <div v-if="cartItems.length" class="drawer-total"><span>Subtotal</span><strong>{{ formatPrice(subtotal) }}</strong><a class="button button--gold button--full" :href="$toUrl('/checkout')">Checkout</a><a class="button button--ghost button--full" :href="$toUrl('/cart')">View cart</a></div>
             </aside>
