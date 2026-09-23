@@ -4,8 +4,8 @@
         <span class="category-card__shade"></span>
         <span class="category-card__content">
             <strong>{{ category.name }}</strong>
-            <small>{{ category.description }}</small>
-            <span>Shop category →</span>
+            <span v-if="category.description" class="category-card__description rich-content" v-html="category.description"></span>
+            <span class="category-card__action">Shop category &rarr;</span>
         </span>
     </a>
 </template>

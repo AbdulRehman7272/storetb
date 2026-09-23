@@ -260,7 +260,9 @@ p { line-height: 1.75; }
     padding: 20px;
 }
 .category-card strong { font-size: 22px; }
-.category-card small, .category-card span span { color: var(--color-muted); }
+.category-card__description { max-height:5.4em; overflow:hidden; color:var(--color-muted); line-height:1.35; }
+.category-card__description p { margin:0; }
+.category-card__action { color:var(--color-gold); font-weight:800; }
 
 .product-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 280px)); justify-content:start; align-items:stretch; }
 .product-grid--list { grid-template-columns: 1fr; }
