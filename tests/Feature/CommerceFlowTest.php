@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\StoreSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -48,6 +49,46 @@ class CommerceFlowTest extends TestCase
             'status' => 'published',
             'regular_price' => 1200,
         ]);
+    }
+
+    public function test_admin_can_securely_update_their_profile(): void
+    {
+        $admin = $this->owner();
+        $admin->forceFill(['password' => Hash::make('CurrentPassword!123')])->save();
+
+        $this->actingAs($admin)->put(route('admin.settings.profile.update'), [
+            'name' => 'Updated Owner',
+            'username' => 'updated.owner',
+            'email' => 'owner@example.com',
+            'current_password' => 'CurrentPassword!123',
+            'password' => 'NewSecurePassword!456',
+            'password_confirmation' => 'NewSecurePassword!456',
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $admin->refresh();
+        $this->assertSame('Updated Owner', $admin->name);
+        $this->assertSame('updated.owner', $admin->username);
+        $this->assertSame('owner@example.com', $admin->email);
+        $this->assertTrue(Hash::check('NewSecurePassword!456', $admin->password));
+    }
+
+    public function test_admin_seeder_preserves_existing_credentials(): void
+    {
+        $admin = $this->owner();
+        $admin->forceFill([
+            'name' => 'Existing Owner',
+            'username' => 'existing-owner',
+            'email' => 'existing@example.com',
+            'password' => Hash::make('ExistingPassword!123'),
+        ])->save();
+
+        $this->seed();
+
+        $admin->refresh();
+        $this->assertSame('Existing Owner', $admin->name);
+        $this->assertSame('existing-owner', $admin->username);
+        $this->assertSame('existing@example.com', $admin->email);
+        $this->assertTrue(Hash::check('ExistingPassword!123', $admin->password));
     }
 
     public function test_admin_can_create_single_product_with_an_image(): void

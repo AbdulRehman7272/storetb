@@ -10,6 +10,22 @@
         'seo_social_image' => ['Social sharing image', 'Default image used when pages are shared.', 'image/*'],
     ];
 @endphp
+<form class="settings-form" method="post" action="{{ route('admin.settings.profile.update') }}">
+    @csrf
+    @method('PUT')
+    <section class="panel settings-section">
+        <div class="settings-heading"><div><h2>Administrator Profile</h2><p>Manage the signed-in administrator account. Confirm the current password before saving.</p></div></div>
+        <div class="settings-fields">
+            <label>Name<input name="name" autocomplete="name" value="{{ old('name', auth()->user()->name) }}" required></label>
+            <label>Username<input name="username" autocomplete="username" value="{{ old('username', auth()->user()->username) }}" required></label>
+            <label class="wide">Email<input type="email" name="email" autocomplete="email" value="{{ old('email', auth()->user()->email) }}" required></label>
+            <label>Current password<input type="password" name="current_password" autocomplete="current-password" required></label>
+            <label>New password<input type="password" name="password" autocomplete="new-password"><small>Leave blank to keep the current password.</small></label>
+            <label>Password confirmation<input type="password" name="password_confirmation" autocomplete="new-password"></label>
+        </div>
+        <button class="btn" type="submit"><i data-lucide="user-cog"></i>Update Administrator</button>
+    </section>
+</form>
 <form class="settings-form" method="post" enctype="multipart/form-data" action="{{ route('admin.settings.update') }}">@csrf
     <section class="panel settings-section"><div class="settings-heading"><div><h2>Store Identity</h2><p>Choose images directly. Existing active files remain until you save replacements.</p></div></div><div class="asset-grid">
         @foreach($imageSettings as $key => [$label,$help,$accept])

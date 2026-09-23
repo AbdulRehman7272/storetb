@@ -91,6 +91,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
         Route::get('roles', [RoleController::class, 'index'])->middleware('permission:manage-staff')->name('roles.index');
         Route::get('settings', [SettingsController::class, 'edit'])->middleware('permission:manage-settings')->name('settings.edit');
         Route::post('settings', [SettingsController::class, 'update'])->middleware('permission:manage-settings')->name('settings.update');
+        Route::put('settings/profile', [SettingsController::class, 'updateProfile'])->middleware('permission:manage-settings')->name('settings.profile.update');
     });
 });
 

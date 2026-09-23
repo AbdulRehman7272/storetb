@@ -8,6 +8,9 @@ use App\Models\Product;
 use App\Models\Setting;
 use App\Support\StoreSettings;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class SettingsController extends Controller
 {
@@ -82,5 +85,32 @@ class SettingsController extends Controller
         }
 
         return back()->with('status', 'Settings updated and active on the storefront.');
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        $values = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'username' => ['required', 'string', 'max:80', 'regex:/^[A-Za-z0-9._-]+$/', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'current_password' => ['required', 'current_password:web'],
+            'password' => ['nullable', 'confirmed', Password::min(12)->mixedCase()->numbers()->symbols()],
+        ]);
+
+        $user->forceFill([
+            'name' => $values['name'],
+            'username' => $values['username'],
+            'email' => $values['email'],
+        ]);
+
+        if (filled($values['password'] ?? null)) {
+            $user->password = Hash::make($values['password']);
+        }
+
+        $user->save();
+        $request->session()->regenerate();
+
+        return back()->with('status', 'Administrator profile updated.');
     }
 }
