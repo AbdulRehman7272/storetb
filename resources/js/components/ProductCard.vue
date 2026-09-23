@@ -55,6 +55,13 @@ const { state, addToCart, toggleWishlist, addRecentlyViewed, formatPrice, discou
 const index = ref(0);
 
 const cardImages = computed(() => {
+    if (props.product.variantColor) {
+        const selectedVariant = (props.product.variants || []).find((variant) => variant.color === props.product.variantColor);
+        if (selectedVariant?.images?.length) return selectedVariant.images;
+        if (selectedVariant?.image) return [selectedVariant.image];
+        return props.product.images || [];
+    }
+
     const seen = new Set();
     const variantImages = (props.product.variants || []).flatMap((variant) => {
         const key = variant.color || variant.id;

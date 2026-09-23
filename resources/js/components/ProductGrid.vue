@@ -213,7 +213,9 @@ const source = computed(() => {
             variantColor: color,
             variantSku: variant?.sku,
             colors: product.colors,
-            images: variant?.images?.length ? variant.images : (product.images?.length ? [variant?.image || product.images[index % product.images.length], ...product.images.filter((image) => image !== (variant?.image || product.images[index % product.images.length]))] : []),
+            images: variant?.images?.length
+                ? variant.images
+                : (variant?.image ? [variant.image] : (product.images?.slice(0, 1) || [])),
         };
     }));
 });
