@@ -936,6 +936,8 @@ th { color: var(--color-gold-2); }
 .rich-content { color:var(--color-text); line-height:1.65; }
 .rich-content>*:first-child { margin-top:0; }
 .rich-content>*:last-child { margin-bottom:0; }
+.category-hero-description { max-width:620px; }
+.category-hero-description p { margin:0 0 12px; }
 .product-content-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(280px,1fr); margin-top:32px; border-top:1px solid var(--color-line-soft); }
 .product-description-section,.product-reviews-section { width:100%; min-height:55vh; padding:clamp(34px,5vw,76px) clamp(18px,4vw,64px); }
 .product-description-section { background:linear-gradient(180deg,#090909,#0d0d0d); }

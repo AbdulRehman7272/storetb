@@ -5,7 +5,7 @@
     <section class="page-title">
         <p class="eyebrow">{{ $category ? 'Collection' : 'Search' }}</p>
         <h1>{{ $title }}</h1>
-        @if($category?->description)<p>{{ $category->description }}</p>@endif
+        @if($category?->description)<div class="rich-content">{!! \App\Support\HtmlSanitizer::clean($category->description) !!}</div>@endif
     </section>
     <section class="section">
         <div class="product-grid">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -81,6 +82,7 @@ class CategoryController extends Controller
             if ($request->hasFile($field.'_upload')) $validated[$field] = 'storage/'.$request->file($field.'_upload')->store('categories', 'public');
             unset($validated[$field.'_upload']);
         }
+        $validated['description'] = HtmlSanitizer::clean($validated['description'] ?? null);
         return $validated + [
             'slug' => $validated['slug'] ?? Str::slug($validated['name']),
             'is_active' => $request->boolean('is_active'),

@@ -9,6 +9,7 @@ use App\Models\PaymentAccount;
 use App\Models\Product;
 use App\Models\ShippingMethod;
 use App\Support\StoreSettings;
+use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 
 class StorefrontController extends Controller
@@ -43,7 +44,7 @@ class StorefrontController extends Controller
     {
         $category = Category::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
         $products = $this->products()->where('category_id', $category->id)->get();
-        return $this->render('category', ['category' => $this->categoryData($category), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => $category->seo_title ?: $category->name, 'description' => $category->seo_description ?: $category->description]);
+        return $this->render('category', ['category' => $this->categoryData($category), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => $category->seo_title ?: $category->name, 'description' => $category->seo_description ?: str($category->description)->stripTags()->squish()->limit(160, '')]);
     }
 
     public function collection(string $slug)
@@ -187,7 +188,7 @@ class StorefrontController extends Controller
     private function categoryData(Category $category): array
     {
         $fallback = 'assets/catalog/category-accessories.webp';
-        return ['id' => $category->id, 'slug' => $category->slug, 'name' => $category->name, 'group' => $category->group_name ?: ($category->parent?->name ?: 'Shop'), 'description' => $category->description ?: '', 'image' => $this->assetUrl($category->main_image ?: $fallback), 'hero' => $this->assetUrl($category->hero_image ?: $category->banner ?: $category->main_image ?: $fallback), 'banner' => $this->assetUrl($category->banner ?: $category->hero_image ?: $category->main_image ?: $fallback), 'featured' => $category->is_featured, 'sections' => $category->children()->where('is_active', true)->pluck('name')->values(), 'url' => route('category.show', $category->slug)];
+        return ['id' => $category->id, 'slug' => $category->slug, 'name' => $category->name, 'group' => $category->group_name ?: ($category->parent?->name ?: 'Shop'), 'description' => HtmlSanitizer::clean($category->description) ?: '', 'image' => $this->assetUrl($category->main_image ?: $fallback), 'hero' => $this->assetUrl($category->hero_image ?: $category->banner ?: $category->main_image ?: $fallback), 'banner' => $this->assetUrl($category->banner ?: $category->hero_image ?: $category->main_image ?: $fallback), 'featured' => $category->is_featured, 'sections' => $category->children()->where('is_active', true)->pluck('name')->values(), 'url' => route('category.show', $category->slug)];
     }
 
     private function collectionData(Collection $collection): array { return ['slug' => $collection->slug, 'name' => $collection->name, 'description' => $collection->description ?: '', 'image' => $this->assetUrl($collection->image ?: 'assets/catalog/banner-accessories.webp')]; }
