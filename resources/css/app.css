@@ -1144,6 +1144,8 @@ th { color: var(--color-gold-2); }
 .form-grid,.variant-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
 .form-grid > *,.variant-grid > * { min-width:0; align-self:start; }
 .form-grid label,.variant-grid label { display: grid; gap: 6px; color: #414750; font-size: 13px; font-weight: 600; }
+.form-grid .form-field { display:grid; gap:6px; }
+.form-grid .form-field__label { color:#414750; font-size:13px; font-weight:600; }
 .form-grid .wide { grid-column: 1/-1; }
 .product-primary-image .admin-image-field__content { grid-template-columns:112px auto; justify-content:start; }
 .form-grid input,.form-grid select,.variant-grid input,.variant-grid select { width:100%; height:44px; min-height:44px; max-height:44px; border:1px solid #cfd5dc; border-radius:5px; padding:9px 10px; background:#fff; color:#20242a; }

@@ -203,6 +203,7 @@ new MutationObserver((records) => records.forEach((record) => record.addedNodes.
 document.querySelectorAll('textarea[name="description"]').forEach((textarea) => {
     if (textarea.dataset.richEditorReady) return;
     textarea.dataset.richEditorReady = 'true';
+    const wrappingLabel = textarea.parentElement?.tagName === 'LABEL' ? textarea.parentElement : null;
     const editor = document.createElement('div');
     editor.className = 'admin-rich-editor';
     editor.innerHTML = `
@@ -219,7 +220,18 @@ document.querySelectorAll('textarea[name="description"]').forEach((textarea) => 
             <button type="button" data-rich-command="redo" title="Redo">&#8631;</button>
         </div>
         <div class="admin-rich-editor__surface" contenteditable="true" role="textbox" aria-multiline="true"></div>`;
-    textarea.before(editor);
+    if (wrappingLabel) {
+        const field = document.createElement('div');
+        field.className = `${wrappingLabel.className} form-field`.trim();
+        const caption = document.createElement('div');
+        caption.className = 'form-field__label';
+        caption.textContent = 'Description';
+        wrappingLabel.before(field);
+        field.append(caption, editor, textarea);
+        wrappingLabel.remove();
+    } else {
+        textarea.before(editor);
+    }
     textarea.hidden = true;
     const surface = editor.querySelector('.admin-rich-editor__surface');
     surface.innerHTML = textarea.value.trim() || '<p><br></p>';
