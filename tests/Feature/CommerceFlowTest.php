@@ -7,8 +7,10 @@ use App\Models\PaymentAccount;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Collection;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\StoreSettings;
+use Database\Seeders\AdminUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -89,6 +91,22 @@ class CommerceFlowTest extends TestCase
         $this->assertSame('existing-owner', $admin->username);
         $this->assertSame('existing@example.com', $admin->email);
         $this->assertTrue(Hash::check('ExistingPassword!123', $admin->password));
+    }
+
+    public function test_admin_seeder_can_run_standalone_on_a_fresh_database(): void
+    {
+        User::query()->delete();
+        Role::query()->where('slug', 'owner')->delete();
+
+        $this->seed(AdminUserSeeder::class);
+
+        $owner = Role::query()->where('slug', 'owner')->firstOrFail();
+        $admin = User::query()->firstOrFail();
+
+        $this->assertSame($owner->id, $admin->role_id);
+        $this->assertSame('admin', $admin->username);
+        $this->assertTrue($admin->is_active);
+        $this->assertFalse(Hash::check('admin12345678', $admin->password));
     }
 
     public function test_admin_can_create_single_product_with_an_image(): void
