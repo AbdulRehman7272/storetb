@@ -185,7 +185,26 @@ const upgradeVariantGallery = (root = document) => {
         input.dataset.adminGalleryInput = 'true';
         const picker = input.closest('[data-admin-image-picker]');
         picker?.classList.add('admin-variant-gallery');
-        const preview = picker?.querySelector('.admin-image-field__preview');
+        const legacyContent = picker?.querySelector('.admin-image-field__content');
+        if (legacyContent) {
+            const legacyPreview = legacyContent.querySelector('.admin-image-field__preview');
+            const choose = document.createElement('label');
+            choose.className = 'action-btn secondary variant-gallery-choose';
+            choose.innerHTML = '<i data-lucide="images"></i>Choose multiple images';
+            choose.append(input);
+            const help = document.createElement('small');
+            help.textContent = 'Select up to 10 photos together. Scroll sideways when the gallery is full.';
+            const removed = document.createElement('span');
+            removed.dataset.removedImages = '';
+            const empty = document.createElement('span');
+            empty.className = 'variant-gallery-empty';
+            empty.dataset.galleryEmpty = '';
+            empty.textContent = 'No images selected';
+            legacyPreview?.append(empty);
+            picker.append(legacyPreview, choose, help, removed);
+            legacyContent.remove();
+        }
+        const preview = picker?.querySelector('.admin-image-field__preview, .variant-gallery-preview');
         if (preview) {
             preview.classList.add('variant-gallery-preview');
             preview.dataset.galleryPreview = 'true';
