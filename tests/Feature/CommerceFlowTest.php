@@ -74,7 +74,7 @@ class CommerceFlowTest extends TestCase
         $this->assertTrue(Hash::check('NewSecurePassword!456', $admin->password));
     }
 
-    public function test_admin_seeder_preserves_existing_credentials(): void
+    public function test_admin_seeder_updates_the_first_admin_credentials(): void
     {
         $admin = $this->owner();
         $admin->forceFill([
@@ -87,10 +87,10 @@ class CommerceFlowTest extends TestCase
         $this->seed();
 
         $admin->refresh();
-        $this->assertSame('Existing Owner', $admin->name);
-        $this->assertSame('existing-owner', $admin->username);
-        $this->assertSame('existing@example.com', $admin->email);
-        $this->assertTrue(Hash::check('ExistingPassword!123', $admin->password));
+        $this->assertSame('Store Owner', $admin->name);
+        $this->assertSame('admin', $admin->username);
+        $this->assertSame('admin@admin.com', $admin->email);
+        $this->assertTrue(Hash::check('admin12345678', $admin->password));
     }
 
     public function test_admin_seeder_can_run_standalone_on_a_fresh_database(): void
@@ -106,7 +106,7 @@ class CommerceFlowTest extends TestCase
         $this->assertSame($owner->id, $admin->role_id);
         $this->assertSame('admin', $admin->username);
         $this->assertTrue($admin->is_active);
-        $this->assertFalse(Hash::check('admin12345678', $admin->password));
+        $this->assertTrue(Hash::check('admin12345678', $admin->password));
     }
 
     public function test_admin_can_create_single_product_with_an_image(): void

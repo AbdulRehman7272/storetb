@@ -222,8 +222,14 @@ document.querySelectorAll('textarea[name="description"]').forEach((textarea) => 
     textarea.before(editor);
     textarea.hidden = true;
     const surface = editor.querySelector('.admin-rich-editor__surface');
-    surface.innerHTML = textarea.value;
+    surface.innerHTML = textarea.value.trim() || '<p><br></p>';
     const sync = () => { textarea.value = surface.innerHTML; };
+    editor.addEventListener('click', (event) => event.stopPropagation());
+    surface.addEventListener('focus', () => {
+        if (!surface.textContent.trim() && !surface.querySelector('br')) {
+            surface.innerHTML = '<p><br></p>';
+        }
+    });
     editor.querySelectorAll('[data-rich-command]').forEach((button) => button.addEventListener('click', () => {
         surface.focus();
         document.execCommand(button.dataset.richCommand, false);
