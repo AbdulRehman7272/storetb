@@ -17,6 +17,7 @@ use App\Models\CartItem;
 use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Support\HtmlSanitizer;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -206,8 +207,9 @@ class ProductController extends Controller
         $data['stock'] = $data['stock'] ?? 0;
         $data['is_featured'] = $request->boolean('is_featured');
         $data['published_at'] = $data['status'] === 'published' ? ($product->published_at ?? now()) : null;
+        $data['description'] = HtmlSanitizer::clean($data['description'] ?? null);
         $data['seo_title'] = $request->input('seo_title') ?: $data['name'];
-        $data['seo_description'] = $request->input('seo_description');
+        $data['seo_description'] = str($request->input('seo_description') ?: strip_tags($data['description'] ?? ''))->squish()->limit(160, '')->toString();
         $data['tags'] = collect(explode(',', (string) $request->input('tags_text')))->map(fn ($tag) => trim($tag))->filter()->values()->all();
         unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image']);
 

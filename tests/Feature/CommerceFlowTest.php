@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Order;
+use App\Models\PaymentAccount;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Collection;
@@ -31,7 +32,7 @@ class CommerceFlowTest extends TestCase
 
     public function test_admin_can_publish_product_with_only_name_and_price(): void
     {
-        $admin = User::query()->where('email', 'admin@tbrand.pk')->firstOrFail();
+        $admin = $this->owner();
 
         $this->actingAs($admin)
             ->post(route('admin.products.store'), [
@@ -52,7 +53,7 @@ class CommerceFlowTest extends TestCase
     public function test_admin_can_create_single_product_with_an_image(): void
     {
         Storage::fake('public');
-        $admin = User::query()->where('email', 'admin@tbrand.pk')->firstOrFail();
+        $admin = $this->owner();
 
         $this->actingAs($admin)->post(route('admin.products.store'), [
             'name' => 'Product With Image',
@@ -69,7 +70,7 @@ class CommerceFlowTest extends TestCase
 
     public function test_admin_can_create_variant_product_and_vendor_codes_are_unique(): void
     {
-        $admin = User::query()->where('email', 'admin@tbrand.pk')->firstOrFail();
+        $admin = $this->owner();
 
         $response = $this->actingAs($admin)->post(route('admin.products.store'), [
             'name' => 'Colour Test Product',
@@ -127,11 +128,12 @@ class CommerceFlowTest extends TestCase
     {
         Storage::fake('local');
         $product = Product::query()->where('status', 'published')->firstOrFail();
+        $paymentAccount = PaymentAccount::query()->firstOrFail();
 
         $this->post(route('cart.add', $product->slug), ['quantity' => 1]);
         $this->post(route('checkout.store'), $this->checkoutPayload([
             'payment_method' => 'manual',
-            'payment_account_id' => 1,
+            'payment_account_id' => $paymentAccount->id,
             'transaction_reference' => 'TX-123',
             'payment_screenshot' => UploadedFile::fake()->image('proof.jpg'),
         ]))->assertSessionHasNoErrors()->assertRedirect();
@@ -162,7 +164,7 @@ class CommerceFlowTest extends TestCase
 
     public function test_admin_can_delete_unused_products_and_categories(): void
     {
-        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $admin = $this->owner();
         $category = Category::query()->create(['name' => 'Temporary Category', 'slug' => 'temporary-category']);
         $product = Product::query()->create(['name' => 'Temporary Product', 'regular_price' => 100, 'stock' => 0, 'status' => 'draft']);
 
@@ -175,7 +177,7 @@ class CommerceFlowTest extends TestCase
 
     public function test_admin_cannot_delete_a_category_that_is_in_use(): void
     {
-        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $admin = $this->owner();
         $product = Product::query()->whereNotNull('category_id')->firstOrFail();
 
         $this->actingAs($admin)->delete(route('admin.categories.destroy', $product->category_id))->assertSessionHasErrors('delete');
@@ -184,7 +186,7 @@ class CommerceFlowTest extends TestCase
 
     public function test_admin_can_delete_a_collection_without_deleting_its_products(): void
     {
-        $admin = User::query()->where('username', 'admin')->firstOrFail();
+        $admin = $this->owner();
         $product = Product::query()->firstOrFail();
         $collection = Collection::query()->create(['name' => 'Temporary Collection', 'slug' => 'temporary-collection']);
         $collection->products()->attach($product);
@@ -230,5 +232,10 @@ class CommerceFlowTest extends TestCase
             'notes' => '',
             'payment_method' => 'cod',
         ], $overrides);
+    }
+
+    private function owner(): User
+    {
+        return User::query()->whereHas('role', fn ($query) => $query->where('slug', 'owner'))->firstOrFail();
     }
 }

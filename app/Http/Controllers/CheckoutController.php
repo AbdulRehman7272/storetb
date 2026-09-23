@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\URL;
 
 class CheckoutController extends Controller
 {
@@ -157,7 +158,7 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        return redirect()->route('checkout.success', $order)->with('status', 'Order placed successfully.');
+        return redirect(URL::temporarySignedRoute('checkout.success', now()->addHours(24), ['order' => $order]))->with('status', 'Order placed successfully.');
     }
 
     public function success(Order $order)

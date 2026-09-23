@@ -15,11 +15,10 @@ use App\Models\ProductOptionValue;
 use App\Models\ProductVariant;
 use App\Models\Role;
 use App\Models\ShippingMethod;
-use App\Models\User;
+use App\Models\Setting;
 use App\Models\Vendor;
 use App\Support\StoreSettings;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
@@ -51,17 +50,7 @@ class DatabaseSeeder extends Seeder
                 : $permissions->pluck('id'));
         }
 
-        $owner = Role::query()->where('slug', 'owner')->first();
-        User::query()->updateOrCreate(
-            ['email' => 'admin@tbrand.pk'],
-            [
-                'name' => 'TBrand Owner',
-                'username' => 'admin',
-                'password' => Hash::make('admin'),
-                'role_id' => $owner->id,
-                'is_active' => true,
-            ]
-        );
+        (new AdminUserSeeder())->run();
 
         foreach ([
             ['store_name', 'TBrand', 'branding'],
@@ -69,6 +58,8 @@ class DatabaseSeeder extends Seeder
             ['general_email', 'info@tbrand.pk', 'contact'],
             ['support_email', 'support@tbrand.pk', 'contact'],
             ['address', 'Pakistan', 'contact'],
+            ['seo_title', 'TBrand | Premium Pakistani Super Store', 'seo'],
+            ['seo_description', 'Shop premium fashion and lifestyle products online in Pakistan.', 'seo'],
             ['show_footer_contact', true, 'contact'],
             ['footer_credit', 'Powered by BoostupLive', 'branding'],
             ['footer_credit_url', 'https://boostuplive.com', 'branding'],
@@ -94,7 +85,14 @@ class DatabaseSeeder extends Seeder
             ['slider_category_ids', [], 'slider'],
             ['slider_product_ids', [], 'slider'],
         ] as [$key, $value, $group]) {
-            StoreSettings::put($key, $value, $group, is_numeric($value) ? 'number' : 'text', true);
+            if (! Setting::query()->where('key', $key)->exists()) {
+                StoreSettings::put($key, $value, $group, is_numeric($value) ? 'number' : 'text', true);
+            }
+        }
+
+        // Demo records are opt-in so production seeding never creates sample products or placeholder payment details.
+        if (! filter_var(env('SEED_DEMO_DATA', false), FILTER_VALIDATE_BOOL)) {
+            return;
         }
 
         $brand = Brand::query()->firstOrCreate(['slug' => 'tbrand'], ['name' => 'TBrand', 'is_active' => true]);

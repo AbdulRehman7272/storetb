@@ -28,6 +28,8 @@ class SettingsController extends Controller
             'general_email' => ['nullable', 'email', 'max:255'],
             'support_email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
+            'seo_title' => ['required', 'string', 'max:70'],
+            'seo_description' => ['required', 'string', 'max:160'],
             'show_footer_contact' => ['nullable', 'boolean'],
             'primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'accent_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -56,6 +58,7 @@ class SettingsController extends Controller
             'favicon_upload' => ['nullable', 'file', 'mimes:png,jpg,jpeg,webp,ico', 'max:2048'],
             'default_product_image_upload' => ['nullable', 'image', 'max:4096'],
             'homepage_hero_image_upload' => ['nullable', 'image', 'max:8192'],
+            'seo_social_image_upload' => ['nullable', 'image', 'max:8192'],
         ]);
 
         $values['show_footer_contact'] = $request->boolean('show_footer_contact');
@@ -64,16 +67,16 @@ class SettingsController extends Controller
         $values['advance_payment_free_shipping'] = $request->boolean('advance_payment_free_shipping');
         $values['slider_category_ids'] = $values['slider_category_ids'] ?? [];
         $values['slider_product_ids'] = $values['slider_product_ids'] ?? [];
-        $groups = ['store_name' => 'branding', 'whatsapp' => 'contact', 'general_email' => 'contact', 'support_email' => 'contact', 'address' => 'contact', 'show_footer_contact' => 'contact', 'primary_color' => 'branding', 'accent_color' => 'branding', 'page_text_color' => 'branding', 'button_text_color' => 'branding', 'homepage_hero_slogan' => 'homepage', 'homepage_hero_title' => 'homepage', 'homepage_hero_description' => 'homepage', 'show_super_store' => 'homepage', 'homepage_category_slug' => 'homepage', 'slider_content_type' => 'slider', 'slider_random' => 'slider', 'slider_category_ids' => 'slider', 'slider_product_ids' => 'slider', 'currency' => 'store', 'shipping_charge' => 'shipping', 'free_shipping_threshold' => 'shipping', 'advance_payment_free_shipping' => 'shipping', 'advance_payment_discount' => 'shipping', 'footer_credit' => 'branding', 'footer_credit_url' => 'branding'];
+        $groups = ['store_name' => 'branding', 'whatsapp' => 'contact', 'general_email' => 'contact', 'support_email' => 'contact', 'address' => 'contact', 'show_footer_contact' => 'contact', 'seo_title' => 'seo', 'seo_description' => 'seo', 'primary_color' => 'branding', 'accent_color' => 'branding', 'page_text_color' => 'branding', 'button_text_color' => 'branding', 'homepage_hero_slogan' => 'homepage', 'homepage_hero_title' => 'homepage', 'homepage_hero_description' => 'homepage', 'show_super_store' => 'homepage', 'homepage_category_slug' => 'homepage', 'slider_content_type' => 'slider', 'slider_random' => 'slider', 'slider_category_ids' => 'slider', 'slider_product_ids' => 'slider', 'currency' => 'store', 'shipping_charge' => 'shipping', 'free_shipping_threshold' => 'shipping', 'advance_payment_free_shipping' => 'shipping', 'advance_payment_discount' => 'shipping', 'footer_credit' => 'branding', 'footer_credit_url' => 'branding'];
         foreach ($groups as $key => $group) {
             $type = in_array($key, ['show_footer_contact', 'show_super_store', 'slider_random', 'advance_payment_free_shipping']) ? 'boolean' : (in_array($key, ['slider_category_ids', 'slider_product_ids']) ? 'json' : (in_array($key, ['shipping_charge', 'free_shipping_threshold', 'advance_payment_discount']) ? 'number' : 'text'));
             StoreSettings::put($key, $values[$key] ?? null, $group, $type);
         }
 
-        foreach (['main_logo', 'mobile_logo', 'favicon', 'default_product_image', 'homepage_hero_image'] as $key) {
+        foreach (['main_logo', 'mobile_logo', 'favicon', 'default_product_image', 'homepage_hero_image', 'seo_social_image'] as $key) {
             $upload = $key.'_upload';
             if ($request->hasFile($upload)) {
-                $group = $key === 'default_product_image' ? 'catalog' : ($key === 'homepage_hero_image' ? 'homepage' : 'branding');
+                $group = $key === 'default_product_image' ? 'catalog' : ($key === 'homepage_hero_image' ? 'homepage' : ($key === 'seo_social_image' ? 'seo' : 'branding'));
                 StoreSettings::put($key, 'storage/'.$request->file($upload)->store('settings', 'public'), $group, 'image');
             }
         }

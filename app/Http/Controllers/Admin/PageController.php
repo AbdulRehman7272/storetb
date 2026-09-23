@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Support\HtmlSanitizer;
 
 class PageController extends Controller
 {
@@ -48,6 +49,9 @@ class PageController extends Controller
 
         $validated['slug'] = $validated['slug'] ?: Str::slug($validated['title']);
         $validated['is_published'] = $request->boolean('is_published');
+        $validated['body'] = HtmlSanitizer::clean($validated['body'] ?? null);
+        $validated['seo_title'] = $validated['seo_title'] ?: $validated['title'];
+        $validated['seo_description'] = str($validated['seo_description'] ?: strip_tags($validated['body'] ?? ''))->squish()->limit(160, '')->toString();
 
         return $validated;
     }

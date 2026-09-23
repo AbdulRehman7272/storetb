@@ -7,6 +7,7 @@
         'mobile_logo' => ['Mobile logo', 'Compact logo for small screens.', 'image/*'],
         'favicon' => ['Browser icon', 'Shown in browser tabs.', 'image/*,.ico'],
         'default_product_image' => ['Default product image', 'Used when a product has no uploaded image.', 'image/*'],
+        'seo_social_image' => ['Social sharing image', 'Default image used when pages are shared.', 'image/*'],
     ];
 @endphp
 <form class="settings-form" method="post" enctype="multipart/form-data" action="{{ route('admin.settings.update') }}">@csrf
@@ -19,6 +20,8 @@
             </label>
         @endforeach
     </div></section>
+
+    <section class="panel settings-section"><div class="settings-heading"><div><h2>Search and Social</h2><p>Default metadata used when a product, category, or page does not provide its own values.</p></div></div><div class="settings-fields"><label class="wide">SEO title<input name="seo_title" maxlength="70" value="{{ old('seo_title',$settings['seo_title'] ?? 'TBrand | Premium Pakistani Super Store') }}" required></label><label class="wide">SEO description<textarea name="seo_description" maxlength="160" rows="3" required>{{ old('seo_description',$settings['seo_description'] ?? 'Shop premium fashion and lifestyle products online in Pakistan.') }}</textarea></label></div></section>
 
     <section class="panel settings-section"><div class="settings-heading"><div><h2>Homepage Hero</h2><p>Manage the main Super Store banner. Keep the subject toward the right side of the image.</p></div></div><div class="hero-settings-grid">
         <label class="asset-picker" data-image-picker>

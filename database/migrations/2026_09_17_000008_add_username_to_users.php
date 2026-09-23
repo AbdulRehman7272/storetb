@@ -2,8 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,12 +11,6 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('username')->nullable()->unique()->after('name');
         });
-
-        DB::table('users')->where('email', 'admin@tbrand.pk')->update([
-            'username' => 'admin',
-            'password' => Hash::make('admin'),
-            'updated_at' => now(),
-        ]);
     }
 
     public function down(): void

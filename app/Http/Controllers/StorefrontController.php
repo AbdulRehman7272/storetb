@@ -33,43 +33,45 @@ class StorefrontController extends Controller
 
         return $this->render('home');
     }
-    public function categories() { return $this->render('categories', [], ['title' => 'All Categories | TBrand', 'description' => 'Explore every TBrand shopping category.']); }
-    public function shop(Request $request) { return $this->render('shop', ['query' => $request->query()]); }
-    public function search(Request $request) { return $this->render('search', ['query' => $request->query('q', '')]); }
-    public function cart() { return $this->render('cart'); }
-    public function checkout() { return $this->render('checkout'); }
+    public function categories() { return $this->render('categories', [], ['title' => 'All Categories', 'description' => 'Explore every shopping category.']); }
+    public function shop(Request $request) { return $this->render('shop', ['query' => $request->query()], ['title' => 'Shop']); }
+    public function search(Request $request) { return $this->render('search', ['query' => $request->query('q', '')], ['title' => 'Search', 'robots' => 'noindex,follow']); }
+    public function cart() { return $this->render('cart', [], ['title' => 'Shopping Cart', 'robots' => 'noindex,nofollow']); }
+    public function checkout() { return $this->render('checkout', [], ['title' => 'Checkout', 'robots' => 'noindex,nofollow']); }
 
     public function category(string $slug)
     {
         $category = Category::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
         $products = $this->products()->where('category_id', $category->id)->get();
-        return $this->render('category', ['category' => $this->categoryData($category), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => ($category->seo_title ?: $category->name).' | TBrand', 'description' => $category->seo_description ?: $category->description]);
+        return $this->render('category', ['category' => $this->categoryData($category), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => $category->seo_title ?: $category->name, 'description' => $category->seo_description ?: $category->description]);
     }
 
     public function collection(string $slug)
     {
         $collection = Collection::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
         $products = $collection->products()->with($this->productRelations())->where('status', 'published')->get();
-        return $this->render('collection', ['collection' => $this->collectionData($collection), 'products' => $products->map(fn ($p) => $this->productData($p))->values()]);
+        return $this->render('collection', ['collection' => $this->collectionData($collection), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => $collection->name, 'description' => $collection->description]);
     }
 
     public function product(string $slug)
     {
         $product = $this->products()->where('slug', $slug)->firstOrFail();
         $related = $this->products()->where('category_id', $product->category_id)->whereKeyNot($product->id)->limit(8)->get();
-        return $this->render('product', ['product' => $this->productData($product), 'related' => $related->map(fn ($p) => $this->productData($p))->values()], ['title' => ($product->seo_title ?: $product->name).' | TBrand', 'description' => $product->seo_description ?: str($product->description)->stripTags()->limit(155), 'image' => $product->imageUrl(), 'type' => 'product']);
+        return $this->render('product', ['product' => $this->productData($product), 'related' => $related->map(fn ($p) => $this->productData($p))->values()], ['title' => $product->seo_title ?: $product->name, 'description' => $product->seo_description ?: str($product->description)->stripTags()->squish()->limit(155, ''), 'image' => $product->imageUrl(), 'type' => 'product']);
     }
 
     public function simple(string $page)
     {
         $record = Page::query()->where('slug', $page)->where('is_published', true)->first();
-        return $this->render($page, ['contentPage' => ['title' => $record?->title ?: str($page)->replace('-', ' ')->title(), 'description' => $record?->body ?: '']]);
+        $title = $record?->title ?: str($page)->replace('-', ' ')->title();
+        $noIndex = in_array($page, ['wishlist', 'compare', 'recently-viewed', 'order-confirmation', 'track-order'], true);
+        return $this->render($page, ['contentPage' => ['title' => $title, 'description' => $record?->body ?: '']], ['title' => $record?->seo_title ?: $title, 'description' => $record?->seo_description ?: str($record?->body)->stripTags()->squish()->limit(160, ''), 'robots' => $noIndex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large']);
     }
 
     public function policy(string $slug)
     {
         $page = Page::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
-        return $this->render('policy', ['policy' => ['title' => $page->title, 'description' => $page->body, 'items' => []]]);
+        return $this->render('policy', ['policy' => ['title' => $page->title, 'description' => $page->body, 'items' => []]], ['title' => $page->seo_title ?: $page->title, 'description' => $page->seo_description ?: str($page->body)->stripTags()->squish()->limit(160, '')]);
     }
 
     private function render(string $page, array $context = [], array $meta = [])
@@ -144,7 +146,12 @@ class StorefrontController extends Controller
             'categoryPromotions' => $categoryData, 'paymentAccounts' => PaymentAccount::query()->where('is_active', true)->orderBy('display_order')->get(), 'shippingMethods' => ShippingMethod::query()->where('is_active', true)->get(), 'pageContext' => $context,
             'sliderItems' => $sliderItems,
         ];
-        return view('storefront.page', ['page' => $page, 'data' => $payload, 'meta' => array_merge(['title' => StoreSettings::get('seo_title', 'TBrand | Premium Pakistani Super Store'), 'description' => StoreSettings::get('seo_description', 'Shop premium fashion, bedding, shoes, watches and accessories online in Pakistan.'), 'image' => asset('assets/brand/monogram-gold-round.png'), 'type' => 'website'], $meta)]);
+        $storeName = StoreSettings::get('store_name', 'TBrand');
+        $defaultTitle = StoreSettings::get('seo_title', $storeName.' | Premium Pakistani Super Store');
+        $meta = array_merge(['title' => $defaultTitle, 'description' => StoreSettings::get('seo_description', 'Shop premium fashion and lifestyle products online in Pakistan.'), 'image' => $this->assetUrl(StoreSettings::get('seo_social_image')) ?: asset('assets/brand/monogram-gold-round.png'), 'type' => 'website', 'robots' => 'index,follow,max-image-preview:large'], $meta);
+        if ($meta['title'] !== $defaultTitle && ! str_contains($meta['title'], $storeName)) $meta['title'] .= ' | '.$storeName;
+        $meta['description'] = str($meta['description'])->stripTags()->squish()->limit(160, '')->toString();
+        return view('storefront.page', ['page' => $page, 'data' => $payload, 'meta' => $meta]);
     }
 
     private function products() { return Product::query()->with($this->productRelations())->where('status', 'published'); }

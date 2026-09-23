@@ -40,6 +40,8 @@ class StoreProductRequest extends FormRequest
             'vendor_reference' => ['nullable', 'string', 'max:255'],
             'vendor_code' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'seo_title' => ['nullable', 'string', 'max:70'],
+            'seo_description' => ['nullable', 'string', 'max:160'],
             'sale_price' => ['nullable', 'numeric', 'min:0'],
             'cost_price' => ['nullable', 'numeric', 'min:0'],
             'stock' => ['nullable', 'integer', 'min:0'],

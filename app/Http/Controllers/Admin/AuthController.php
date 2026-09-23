@@ -5,11 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function login()
     {
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return view('admin.auth.login');
     }
 
@@ -20,11 +27,21 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        $key = Str::lower($credentials['username']).'|'.$request->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw ValidationException::withMessages([
+                'username' => 'Too many login attempts. Try again in '.RateLimiter::availableIn($key).' seconds.',
+            ]);
+        }
+
+        if (Auth::attempt([...$credentials, 'is_active' => true], $request->boolean('remember'))) {
+            RateLimiter::clear($key);
             $request->session()->regenerate();
             auth()->user()->forceFill(['last_login_at' => now()])->save();
             return redirect()->intended(route('admin.dashboard'));
         }
+
+        RateLimiter::hit($key, 60);
 
         return back()->withErrors(['username' => 'Invalid username or password.'])->onlyInput('username');
     }
