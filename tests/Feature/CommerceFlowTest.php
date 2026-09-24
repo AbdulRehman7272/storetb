@@ -42,23 +42,31 @@ class CommerceFlowTest extends TestCase
         }
     }
 
-    public function test_admin_can_publish_product_with_only_name_and_price(): void
+    public function test_admin_can_publish_product_with_required_variant_fields(): void
     {
+        Storage::fake('public');
         $admin = $this->owner();
 
         $this->actingAs($admin)
             ->post(route('admin.products.store'), [
                 'name' => 'One Minute Product',
-                'product_type' => 'single',
-                'regular_price' => 1200,
+                'product_type' => 'variant',
                 'status' => 'published',
+                'variants' => [[
+                    'color' => 'Default',
+                    'sku' => 'TB-ONE-MINUTE',
+                    'regular_price' => 1200,
+                    'stock' => 1,
+                    'enabled' => 1,
+                    'image' => UploadedFile::fake()->image('product.jpg'),
+                ]],
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('products', [
             'name' => 'One Minute Product',
             'status' => 'published',
-            'regular_price' => 1200,
+            'product_type' => 'variant',
         ]);
     }
 
@@ -118,26 +126,33 @@ class CommerceFlowTest extends TestCase
         $this->assertTrue(Hash::check('admin12345678', $admin->password));
     }
 
-    public function test_admin_can_create_single_product_with_an_image(): void
+    public function test_admin_can_create_product_with_one_variant_and_an_image(): void
     {
         Storage::fake('public');
         $admin = $this->owner();
 
         $this->actingAs($admin)->post(route('admin.products.store'), [
             'name' => 'Product With Image',
-            'product_type' => 'single',
-            'regular_price' => 4500,
+            'product_type' => 'variant',
             'status' => 'published',
-            'image' => UploadedFile::fake()->image('product.jpg', 580, 670),
+            'variants' => [[
+                'color' => 'Default',
+                'sku' => 'TB-PRODUCT-IMAGE',
+                'regular_price' => 4500,
+                'stock' => 1,
+                'enabled' => 1,
+                'image' => UploadedFile::fake()->image('product.jpg', 580, 670),
+            ]],
         ])->assertSessionHasNoErrors()->assertRedirect();
 
         $product = Product::query()->where('name', 'Product With Image')->firstOrFail();
-        $media = $product->media()->firstOrFail();
-        Storage::disk('public')->assertExists(str($media->path)->after('storage/')->toString());
+        $variant = $product->variants()->firstOrFail();
+        Storage::disk('public')->assertExists(str($variant->image)->after('storage/')->toString());
     }
 
     public function test_admin_can_create_variant_product_and_vendor_codes_are_unique(): void
     {
+        Storage::fake('public');
         $admin = $this->owner();
 
         $response = $this->actingAs($admin)->post(route('admin.products.store'), [
@@ -155,6 +170,7 @@ class CommerceFlowTest extends TestCase
                 'sale_price' => 2200,
                 'stock' => 6,
                 'enabled' => 1,
+                'image' => UploadedFile::fake()->image('emerald.jpg'),
             ]],
         ]);
 
@@ -171,10 +187,16 @@ class CommerceFlowTest extends TestCase
 
         $this->actingAs($admin)->post(route('admin.products.store'), [
             'name' => 'Duplicate Vendor Code',
-            'product_type' => 'single',
-            'regular_price' => 1000,
+            'product_type' => 'variant',
             'status' => 'draft',
             'vendor_code' => 'VENDOR-VARIANT-01',
+            'variants' => [[
+                'color' => 'Default',
+                'sku' => 'TB-DUPLICATE-CODE',
+                'regular_price' => 1000,
+                'stock' => 1,
+                'image' => UploadedFile::fake()->image('duplicate.jpg'),
+            ]],
         ])->assertSessionHasErrors('vendor_code');
     }
 

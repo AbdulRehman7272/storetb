@@ -27,7 +27,7 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'product_type' => ['required', 'in:single,variant'],
+            'product_type' => ['required', 'in:variant'],
             'color' => ['nullable', 'string', 'max:100'],
             'swatch' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'size' => ['nullable', 'string', 'max:100', 'not_regex:/,/'],
@@ -51,7 +51,7 @@ class StoreProductRequest extends FormRequest
             'collection_ids' => ['nullable', 'array'],
             'collection_ids.*' => ['exists:collections,id'],
             'tags_text' => ['nullable', 'string'],
-            'variants' => ['nullable', 'array'],
+            'variants' => ['required', 'array', 'min:1'],
             'variants.*.id' => ['nullable', 'exists:product_variants,id'],
             'variants.*.color' => ['required_with:variants', 'string', 'max:100'],
             'variants.*.swatch' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
@@ -59,7 +59,7 @@ class StoreProductRequest extends FormRequest
             'variants.*.sku' => ['required_with:variants', 'string', 'max:255', 'distinct'],
             'variants.*.vendor_reference' => ['nullable', 'string', 'max:255'],
             'variants.*.vendor_code' => ['nullable', 'string', 'max:255'],
-            'variants.*.regular_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.regular_price' => ['required', 'numeric', 'min:0'],
             'variants.*.sale_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.cost_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock' => ['required_with:variants', 'integer', 'min:0'],
@@ -80,10 +80,6 @@ class StoreProductRequest extends FormRequest
             $mainCode = trim((string) $this->input('vendor_code'));
             $submittedCodes = [];
 
-            if ($this->input('product_type') === 'variant' && count($this->input('variants', [])) === 0) {
-                $validator->errors()->add('variants', 'Add at least one variant for a variant product.');
-            }
-
             if ($mainCode !== '') {
                 $usedByProduct = Product::query()->where('vendor_code', $mainCode)
                     ->when($productId, fn ($query) => $query->whereKeyNot($productId))->exists();
@@ -97,6 +93,19 @@ class StoreProductRequest extends FormRequest
             foreach ($this->input('variants', []) as $index => $variant) {
                 if (! filled($variant['regular_price'] ?? null) && ! filled($variant['sale_price'] ?? null)) {
                     $validator->errors()->add("variants.$index.sale_price", 'Enter a full price or sale price.');
+                }
+                $colour = strtolower(trim((string) ($variant['color'] ?? '')));
+                $hasColourImage = collect($this->input('variants', []))->contains(function ($candidate, $candidateIndex) use ($colour) {
+                    if (strtolower(trim((string) ($candidate['color'] ?? ''))) !== $colour) return false;
+                    $existingImage = filled($candidate['id'] ?? null)
+                        && ProductVariant::query()->whereKey($candidate['id'])->whereNotNull('image')->exists();
+                    return $existingImage || $this->hasFile("variants.$candidateIndex.image") || $this->hasFile("variants.$candidateIndex.images");
+                });
+                $firstColour = strtolower(trim((string) data_get($this->input('variants', []), '0.color', '')));
+                $legacyImage = $colour === $firstColour && $product instanceof Product
+                    && $product->variants()->doesntExist() && $product->primaryMedia()->exists();
+                if (! $hasColourImage && ! $legacyImage) {
+                    $validator->errors()->add("variants.$index.image", 'Add at least one image for this colour.');
                 }
                 $code = trim((string) ($variant['vendor_code'] ?? ''));
                 if ($code === '') continue;

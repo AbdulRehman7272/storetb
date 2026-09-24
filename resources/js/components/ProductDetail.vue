@@ -31,6 +31,17 @@
                 </div>
             </section>
 
+            <div v-if="product.colors?.length" class="mobile-variant-picker" aria-label="Choose product colour">
+                <div class="option-group__head">
+                    <strong>Color</strong><span>{{ selectedColor }}</span>
+                </div>
+                <div class="mobile-variant-picker__options">
+                    <button v-for="color in product.colors" :key="color" class="mobile-color-option" :class="{ active: color === selectedColor }" type="button" @click="selectedColor = color">
+                        <i :style="{ '--swatch': swatch(color) }" aria-hidden="true"></i><span>{{ color }}</span>
+                    </button>
+                </div>
+            </div>
+
             <section class="product-panel">
                 <p class="eyebrow">{{ category?.name }} · {{ product.subcategory }}</p>
                 <h1 itemprop="name">{{ product.name }}</h1>

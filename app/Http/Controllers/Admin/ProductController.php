@@ -60,7 +60,7 @@ class ProductController extends Controller
     public function create(Request $request)
     {
         return view('admin.products.form', [
-            'product' => new Product(['status' => 'draft', 'stock' => 0, 'product_type' => 'single']),
+            'product' => new Product(['status' => 'draft', 'stock' => 0, 'product_type' => 'variant']),
             'mode' => $request->get('mode', 'quick'),
             'categories' => Category::query()->orderBy('name')->get(),
             'brands' => Brand::query()->orderBy('name')->get(),
@@ -188,6 +188,7 @@ class ProductController extends Controller
     private function payload(StoreProductRequest $request, ?Product $product = null): array
     {
         $data = $request->validated();
+        $data['product_type'] = 'variant';
         $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['name']);
         if ($product && Product::query()->where('slug', $data['slug'])->whereKeyNot($product->id)->exists()) {
             $data['slug'] .= '-' . $product->id;
@@ -208,8 +209,14 @@ class ProductController extends Controller
         $data['is_featured'] = $request->boolean('is_featured');
         $data['published_at'] = $data['status'] === 'published' ? ($product->published_at ?? now()) : null;
         $data['description'] = HtmlSanitizer::clean($data['description'] ?? null);
-        $data['seo_title'] = $request->input('seo_title') ?: $data['name'];
-        $data['seo_description'] = str($request->input('seo_description') ?: strip_tags($data['description'] ?? ''))->squish()->limit(160, '')->toString();
+        $category = filled($data['category_id'] ?? null) ? Category::query()->find($data['category_id']) : null;
+        $data['seo_title'] = $request->input('seo_title') ?: str(collect([$data['name'], $category?->name, 'TBrand'])->filter()->join(' | '))->limit(70, '')->toString();
+        $suggestedDescription = collect([
+            $data['name'],
+            strip_tags($data['description'] ?? ''),
+            strip_tags($category?->seo_description ?: $category?->description ?: ''),
+        ])->filter()->join('. ');
+        $data['seo_description'] = str($request->input('seo_description') ?: $suggestedDescription)->squish()->limit(160, '')->toString();
         $data['tags'] = collect(explode(',', (string) $request->input('tags_text')))->map(fn ($tag) => trim($tag))->filter()->values()->all();
         unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image']);
 
@@ -240,6 +247,7 @@ class ProductController extends Controller
         $sizeOption = ProductOption::query()->firstOrCreate(['slug' => 'size'], ['name' => 'Size']);
         $kept = [];
         $colourImages = [];
+        $legacyImage = $product->variants()->doesntExist() ? $product->primaryMedia?->path : null;
         foreach ($request->input('variants', []) as $index => $row) {
             $color = ProductOptionValue::query()->updateOrCreate(['product_option_id' => $colourOption->id, 'slug' => Str::slug($row['color'])], ['value' => $row['color'], 'swatch' => $row['swatch'] ?? '#777777']);
             $size = filled($row['size'] ?? null) ? ProductOptionValue::query()->firstOrCreate(['product_option_id' => $sizeOption->id, 'slug' => Str::slug($row['size'])], ['value' => $row['size']]) : null;
@@ -256,6 +264,8 @@ class ProductController extends Controller
                 $variant->update(['image' => 'storage/'.$storedImage]);
             } elseif (! $variant->image && isset($colourImages[Str::slug($row['color'])])) {
                 $variant->update(['image' => $colourImages[Str::slug($row['color'])]]);
+            } elseif (! $variant->image && $index === 0 && $legacyImage) {
+                $variant->update(['image' => $legacyImage]);
             }
             $removedImages = collect($row['remove_images'] ?? []);
             $gallery = collect($variant->images ?: [])->filter()->reject(fn ($path) => $removedImages->contains($path));
@@ -273,9 +283,7 @@ class ProductController extends Controller
             $variant->optionValues()->sync(collect([$color->id, $size?->id])->filter());
             $kept[] = $variant->id;
         }
-        if ($request->input('product_type') === 'single') {
-            $product->variants()->delete();
-        } elseif ($request->has('variants')) {
+        if ($request->has('variants')) {
             $product->variants()->whereNotIn('id', $kept)->delete();
         }
         if ($kept) $product->update(['stock' => $product->variants()->sum('stock')]);

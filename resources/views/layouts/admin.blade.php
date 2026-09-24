@@ -42,7 +42,7 @@
     </aside>
     <div class="admin-main">
         <header class="admin-top">
-            <button class="icon-btn admin-sidebar-toggle" type="button" data-admin-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" title="Menu"><i data-lucide="menu"></i></button>
+            <button class="icon-btn admin-sidebar-toggle" type="button" data-admin-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open navigation" title="Menu"><span class="admin-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span></button>
             <div class="admin-top__title"><p class="breadcrumb-lite">Admin / @yield('title', 'Dashboard')</p><h1>@yield('title', 'Dashboard')</h1></div>
             <form method="post" action="{{ route('admin.logout') }}">@csrf<button class="icon-btn icon-btn--danger" title="Logout" aria-label="Logout"><i data-lucide="log-out"></i></button></form>
         </header>
