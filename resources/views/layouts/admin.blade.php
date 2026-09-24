@@ -18,7 +18,8 @@
 </head>
 <body class="admin-body">
 <div class="admin-shell">
-    <aside class="admin-sidebar">
+    <button class="admin-sidebar-backdrop" type="button" data-admin-sidebar-close aria-label="Close navigation"></button>
+    <aside class="admin-sidebar" id="admin-sidebar">
         <a class="admin-logo" href="{{ route('admin.dashboard') }}"><img src="{{ asset($logo) }}" alt="{{ $storeName }}"></a>
         <nav>
             @foreach([
@@ -41,7 +42,8 @@
     </aside>
     <div class="admin-main">
         <header class="admin-top">
-            <div><p class="breadcrumb-lite">Admin / @yield('title', 'Dashboard')</p><h1>@yield('title', 'Dashboard')</h1></div>
+            <button class="icon-btn admin-sidebar-toggle" type="button" data-admin-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" title="Menu"><i data-lucide="menu"></i></button>
+            <div class="admin-top__title"><p class="breadcrumb-lite">Admin / @yield('title', 'Dashboard')</p><h1>@yield('title', 'Dashboard')</h1></div>
             <form method="post" action="{{ route('admin.logout') }}">@csrf<button class="icon-btn icon-btn--danger" title="Logout" aria-label="Logout"><i data-lucide="log-out"></i></button></form>
         </header>
         @if(session('status'))<div class="alert alert-success py-2">{{ session('status') }}</div>@endif
@@ -80,6 +82,13 @@
 <script src="{{ asset('admin-assets/js/bootstrap.js') }}"></script>
 <script>document.addEventListener('DOMContentLoaded',()=>{$('.admin-multiselect').select2({width:'100%',closeOnSelect:false,placeholder:'Select items'});});</script>
 <script>
+const setAdminSidebar = (open) => {
+    document.body.classList.toggle('admin-sidebar-open', open);
+    document.querySelector('[data-admin-sidebar-toggle]')?.setAttribute('aria-expanded', String(open));
+};
+document.querySelector('[data-admin-sidebar-toggle]')?.addEventListener('click', () => setAdminSidebar(!document.body.classList.contains('admin-sidebar-open')));
+document.querySelector('[data-admin-sidebar-close]')?.addEventListener('click', () => setAdminSidebar(false));
+document.querySelectorAll('.admin-sidebar a').forEach((link) => link.addEventListener('click', () => setAdminSidebar(false)));
 document.addEventListener('DOMContentLoaded', () => {
     const element = document.getElementById('deleteConfirmModal');
     const modal = bootstrap.Modal.getOrCreateInstance(element);

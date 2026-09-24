@@ -4,8 +4,8 @@
             <a class="logo" :href="$toUrl('/')" aria-label="TBrand home"><img :src="data.store.logo" alt="TBrand"></a>
             <nav class="desktop-nav" aria-label="Main navigation">
                 <a v-if="data.store.show_super_store" :href="$toUrl('/super-store')">Super Store</a>
-                <div class="mega">
-                    <button type="button">SHOP</button>
+                <div ref="shopMenu" class="mega" :class="{ open: shopOpen }">
+                    <button type="button" :aria-expanded="shopOpen" @click="shopOpen = !shopOpen">SHOP</button>
                     <div class="mega__panel">
                         <div v-for="group in categoryGroups" :key="group.name">
                             <strong>{{ group.name }}</strong>
@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { computed, defineComponent, ref } from 'vue';
+import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import CategoryCard from './components/CategoryCard.vue';
 import ProductCard from './components/ProductCard.vue';
 import ProductGrid from './components/ProductGrid.vue';
@@ -104,7 +104,16 @@ const context = data.pageContext || {};
 const cartOpen = ref(false);
 const searchOpen = ref(false);
 const menuOpen = ref(false);
+const shopOpen = ref(false);
+const shopMenu = ref(null);
 const utilityPages = ['wishlist', 'compare', 'recently-viewed', 'order-confirmation', 'about', 'contact', 'faq', 'track-order', 'size-guide', 'policy'];
+
+const closeShopOutside = (event) => {
+    if (shopOpen.value && !shopMenu.value?.contains(event.target)) shopOpen.value = false;
+};
+
+onMounted(() => document.addEventListener('pointerdown', closeShopOutside));
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeShopOutside));
 
 const categoryGroups = computed(() => {
     const groups = {};

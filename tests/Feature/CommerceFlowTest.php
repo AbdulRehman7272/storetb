@@ -33,6 +33,15 @@ class CommerceFlowTest extends TestCase
         $this->get('/ladies-suiting')->assertOk()->assertSee('Ladies Suiting');
     }
 
+    public function test_standard_policy_pages_work_without_seeded_page_records(): void
+    {
+        \App\Models\Page::query()->delete();
+
+        foreach (['shipping-policy', 'return-exchange-policy', 'privacy-policy', 'terms-conditions'] as $slug) {
+            $this->get('/policies/'.$slug)->assertOk()->assertSee('TBrand');
+        }
+    }
+
     public function test_admin_can_publish_product_with_only_name_and_price(): void
     {
         $admin = $this->owner();

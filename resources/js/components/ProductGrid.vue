@@ -145,7 +145,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import ProductCard from './ProductCard.vue';
 import { discountPercent, formatPrice, useCommerce } from '../composables/useCommerce';
 
@@ -177,6 +177,11 @@ const sortOptions = [
     { value: 'price-high', label: 'Price: high to low' },
     { value: 'discount', label: 'Discount' },
 ];
+const closeSortOutside = (event) => {
+    if (sortOpen.value && !event.target.closest('.sort-menu')) sortOpen.value = false;
+};
+onMounted(() => document.addEventListener('pointerdown', closeSortOutside));
+onBeforeUnmount(() => document.removeEventListener('pointerdown', closeSortOutside));
 const shuffleRanks = new Map();
 function shuffleRank(product) {
     const key = product.cardKey || product.variantSku || product.slug;

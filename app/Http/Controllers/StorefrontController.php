@@ -64,15 +64,35 @@ class StorefrontController extends Controller
     public function simple(string $page)
     {
         $record = Page::query()->where('slug', $page)->where('is_published', true)->first();
-        $title = $record?->title ?: str($page)->replace('-', ' ')->title();
+        $fallback = $this->defaultPage($page);
+        $title = $record?->title ?: $fallback['title'];
+        $body = HtmlSanitizer::clean($record?->body ?: $fallback['body']);
         $noIndex = in_array($page, ['wishlist', 'compare', 'recently-viewed', 'order-confirmation', 'track-order'], true);
-        return $this->render($page, ['contentPage' => ['title' => $title, 'description' => $record?->body ?: '']], ['title' => $record?->seo_title ?: $title, 'description' => $record?->seo_description ?: str($record?->body)->stripTags()->squish()->limit(160, ''), 'robots' => $noIndex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large']);
+        return $this->render($page, ['contentPage' => ['title' => $title, 'description' => $body]], ['title' => $record?->seo_title ?: $title, 'description' => $record?->seo_description ?: str($body)->stripTags()->squish()->limit(160, ''), 'robots' => $noIndex ? 'noindex,nofollow' : 'index,follow,max-image-preview:large']);
     }
 
     public function policy(string $slug)
     {
-        $page = Page::query()->where('slug', $slug)->where('is_published', true)->firstOrFail();
-        return $this->render('policy', ['policy' => ['title' => $page->title, 'description' => $page->body, 'items' => []]], ['title' => $page->seo_title ?: $page->title, 'description' => $page->seo_description ?: str($page->body)->stripTags()->squish()->limit(160, '')]);
+        $page = Page::query()->whereIn('slug', [$slug, $slug === 'terms-conditions' ? 'terms-and-conditions' : $slug])->where('is_published', true)->first();
+        $fallback = $this->defaultPage($slug);
+        $title = $page?->title ?: $fallback['title'];
+        $body = HtmlSanitizer::clean($page?->body ?: $fallback['body']);
+        return $this->render('policy', ['policy' => ['title' => $title, 'description' => $body, 'items' => []]], ['title' => $page?->seo_title ?: $title, 'description' => $page?->seo_description ?: str($body)->stripTags()->squish()->limit(160, '')]);
+    }
+
+    private function defaultPage(string $slug): array
+    {
+        return match ($slug) {
+            'about' => ['title' => 'About TBrand', 'body' => '<p>TBrand brings thoughtfully selected Pakistani fashion to customers who value style, quality, and dependable service.</p><p>We focus on clear product presentation, practical shopping, and responsive customer support.</p>'],
+            'contact' => ['title' => 'Contact TBrand', 'body' => '<p>Contact our customer care team for help with products, sizing, delivery, payments, or exchanges.</p>'],
+            'faq' => ['title' => 'Frequently Asked Questions', 'body' => '<p>Find answers about ordering, payment, delivery, sizing, and exchanges at TBrand.</p>'],
+            'size-guide' => ['title' => 'Size Guide', 'body' => '<p>Use the measurements shown on each product and compare them with a similar garment that fits you comfortably.</p>'],
+            'shipping-policy' => ['title' => 'Shipping Policy', 'body' => '<h2>Delivery across Pakistan</h2><p>TBrand processes confirmed orders as quickly as possible. Estimated delivery is normally 2-5 working days, depending on destination and courier availability.</p><h2>Delivery charges</h2><p>Shipping charges and free-shipping eligibility are displayed during checkout before the order is placed.</p><h2>Order updates</h2><p>Customers may contact TBrand support with their order number for delivery assistance.</p>'],
+            'return-exchange-policy' => ['title' => 'Returns & Exchanges', 'body' => '<h2>Exchange eligibility</h2><p>Unused, unworn items may be requested for exchange within 14 days of delivery. Items must retain their original condition, packaging, and labels.</p><h2>Reporting an issue</h2><p>Please contact TBrand promptly with your order number and clear photos if an item arrives damaged or incorrect.</p><h2>Non-returnable items</h2><p>Used, altered, washed, or customer-damaged products cannot be accepted.</p>'],
+            'privacy-policy' => ['title' => 'Privacy Policy', 'body' => '<h2>Information we collect</h2><p>TBrand collects the contact, delivery, and payment-reference information needed to process and support customer orders.</p><h2>How information is used</h2><p>Customer information is used for order fulfilment, delivery updates, support, fraud prevention, and legal record keeping.</p><h2>Information sharing</h2><p>Necessary delivery details may be shared with payment and courier partners. TBrand does not sell customer information.</p><h2>Your choices</h2><p>You may contact TBrand to request correction of inaccurate personal information.</p>'],
+            'terms-conditions', 'terms-and-conditions' => ['title' => 'Terms & Conditions', 'body' => '<h2>Orders and availability</h2><p>Orders are subject to product availability, successful confirmation, and the prices shown at checkout.</p><h2>Product presentation</h2><p>We aim to present colours and details accurately, but screens, lighting, and fabric batches may create slight differences.</p><h2>Payments and delivery</h2><p>Customers must provide accurate contact and delivery information. Advance payments are verified before fulfilment.</p><h2>Use of this website</h2><p>Website content and product photography may not be copied or reused without permission from TBrand.</p>'],
+            default => ['title' => str($slug)->replace('-', ' ')->title()->toString(), 'body' => '<p>Information for TBrand customers.</p>'],
+        };
     }
 
     private function render(string $page, array $context = [], array $meta = [])

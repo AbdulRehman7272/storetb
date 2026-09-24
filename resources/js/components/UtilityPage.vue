@@ -104,7 +104,7 @@
     <section v-else-if="page === 'policy'" class="section-block">
         <p class="eyebrow">Policy</p>
         <h1>{{ context.policy.title }}</h1>
-        <p>{{ context.policy.description }}</p>
+        <div class="rich-content policy-content" v-html="context.policy.description"></div>
         <ul class="policy-list">
             <li v-for="item in context.policy.items" :key="item">{{ item }}</li>
         </ul>
@@ -120,7 +120,7 @@
                 <p>Explore {{ categorySummary }} through one simple, consistent shopping experience.</p>
             </div>
         </div>
-        <p v-else>{{ content?.description || 'This customer-facing page is ready for future backend content.' }}</p>
+        <div v-else class="rich-content policy-content" v-html="content?.description"></div>
     </section>
 </template>
 
@@ -163,9 +163,9 @@ const items = computed(() => {
 });
 
 const faqs = [
-    { q: 'Do you deliver across Pakistan?', a: 'Yes, this frontend is prepared for nationwide delivery options. Final courier logic belongs to the future backend phase.' },
+    { q: 'Do you deliver across Pakistan?', a: 'Yes. TBrand delivers to supported locations across Pakistan through available courier services.' },
     { q: 'Can I exchange a size?', a: 'Eligible unused products can be exchanged within 14 days according to the return and exchange policy.' },
-    { q: 'Is Cash on Delivery available?', a: 'COD is included as a checkout option in this static phase.' },
-    { q: 'Are product prices real?', a: 'Prices are realistic Pakistani rupee placeholders and can later come from the database.' },
+    { q: 'Is Cash on Delivery available?', a: 'Cash on Delivery is available when shown during checkout. Bank or wallet transfer may also be offered.' },
+    { q: 'How long does delivery take?', a: 'Most confirmed orders are expected within 2-5 working days, depending on the destination and courier service.' },
 ];
 </script>
