@@ -30,7 +30,7 @@
         <a class="button button--gold" :href="$toUrl('/shop')">Continue shopping</a>
     </section>
 
-    <section v-else-if="page === 'track-order'" class="two-column-page">
+    <section v-else-if="page === 'track-order'" class="two-column-page utility-page">
         <div>
             <p class="eyebrow">Track Order</p>
             <h1>Track Your Order</h1>
@@ -52,7 +52,7 @@
         </div>
     </section>
 
-    <section v-else-if="page === 'size-guide'" class="section-block">
+    <section v-else-if="page === 'size-guide'" class="section-block utility-page">
         <p class="eyebrow">Size Guide</p>
         <h1>TBrand Size Guide</h1>
         <div class="table-wrap">
@@ -69,7 +69,7 @@
         </div>
     </section>
 
-    <section v-else-if="page === 'contact'" class="two-column-page">
+    <section v-else-if="page === 'contact'" class="two-column-page utility-page">
         <div>
             <p class="eyebrow">Contact Us</p>
             <h1>Customer Care</h1>
@@ -90,7 +90,7 @@
         </div>
     </section>
 
-    <section v-else-if="page === 'faq'" class="section-block">
+    <section v-else-if="page === 'faq'" class="section-block utility-page">
         <p class="eyebrow">FAQ</p>
         <h1>Frequently Asked Questions</h1>
         <div class="accordions">
@@ -101,7 +101,7 @@
         </div>
     </section>
 
-    <section v-else-if="page === 'policy'" class="section-block">
+    <section v-else-if="page === 'policy'" class="section-block utility-page policy-page">
         <p class="eyebrow">Policy</p>
         <h1>{{ context.policy.title }}</h1>
         <div class="rich-content policy-content" v-html="context.policy.description"></div>
@@ -110,7 +110,7 @@
         </ul>
     </section>
 
-    <section v-else class="section-block prose-page">
+    <section v-else class="section-block prose-page utility-page">
         <p class="eyebrow">{{ content?.title || 'TBrand' }}</p>
         <h1>{{ content?.title || 'TBrand' }}</h1>
         <div v-if="page === 'about'" class="about-grid">

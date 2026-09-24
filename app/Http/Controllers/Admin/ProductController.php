@@ -57,11 +57,10 @@ class ProductController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create()
     {
         return view('admin.products.form', [
             'product' => new Product(['status' => 'draft', 'stock' => 0, 'product_type' => 'variant']),
-            'mode' => $request->get('mode', 'quick'),
             'categories' => Category::query()->orderBy('name')->get(),
             'brands' => Brand::query()->orderBy('name')->get(),
             'vendors' => Vendor::query()->orderBy('name')->get(),
