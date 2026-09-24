@@ -1,3 +1,0 @@
-@each $color, $value in $theme-colors {
-    @include conca-list-group-item-variant('.list-group-item-#{$color}', $value);
-}

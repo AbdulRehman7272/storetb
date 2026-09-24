@@ -1,3 +1,0 @@
-@each $state, $data in $form-validation-states {
-    @include conca-form-validation-state($state, $data...);
-  }
