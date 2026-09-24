@@ -33,7 +33,7 @@ Route::get('/sitemap.xml', function () {
     Collection::where('is_active', true)->get()->each(fn ($item) => $urls->push(['loc' => route('collection.show', $item->slug), 'lastmod' => $item->updated_at->toDateString(), 'frequency' => 'weekly']));
     Product::where('status', 'published')->get()->each(fn ($item) => $urls->push(['loc' => route('product.show', $item->slug), 'lastmod' => $item->updated_at->toDateString(), 'frequency' => 'weekly']));
     Page::where('is_published', true)->get()->each(fn ($item) => $urls->push(['loc' => url('/'.$item->slug), 'lastmod' => $item->updated_at->toDateString(), 'frequency' => 'monthly']));
-    return response()->view('storefront.sitemap', compact('urls'))->header('Content-Type', 'application/xml');
+    return response()->view('storefront.sitemap', compact('urls'), 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
 })->name('sitemap');
 Route::get('/robots.txt', function () use ($adminPath) {
     return response("User-agent: *\nAllow: /\nDisallow: /{$adminPath}\nDisallow: /cart\nDisallow: /checkout\nDisallow: /search\nSitemap: ".route('sitemap')."\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
