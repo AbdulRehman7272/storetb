@@ -1155,7 +1155,7 @@ th { color: var(--color-gold-2); }
 .admin-sidebar nav a:hover,.admin-sidebar nav a.active { color: #fff; background: #292e35; }
 .admin-main { min-width: 0; padding: 24px; }
 .admin-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.admin-body .admin-sidebar-toggle,.admin-body .admin-sidebar-backdrop { display:none; }
+.admin-body .admin-sidebar-toggle,.admin-body .admin-sidebar-backdrop { display:none !important; }
 .admin-top__title { flex:1; }
 .admin-top h1 { margin: 2px 0; color: #181b20; font: 700 26px/1.2 Arial,sans-serif; }
 .breadcrumb-lite { margin: 0; color: #727984; font-size: 12px; }
@@ -1435,9 +1435,9 @@ th { color: var(--color-gold-2); }
     .admin-body .admin-sidebar nav a { min-height:46px; padding:11px 13px; border:1px solid transparent; font-size:14px; }
     .admin-body .admin-sidebar nav a:hover,.admin-body .admin-sidebar nav a.active { border-color:rgba(200,164,93,.55); background:rgba(200,164,93,.14); color:#fff; }
     .admin-body .admin-sidebar nav a.active svg { color:#c8a45d; }
-    .admin-body .admin-sidebar-backdrop { position:fixed; inset:0; z-index:1190; display:block; visibility:hidden; opacity:0; border:0; background:rgba(8,9,11,.62); backdrop-filter:blur(3px); transition:opacity .22s ease,visibility .22s ease; }
+    .admin-body .admin-sidebar-backdrop { position:fixed; inset:0; z-index:1190; display:block !important; visibility:hidden; opacity:0; border:0; background:rgba(8,9,11,.62); backdrop-filter:blur(3px); transition:opacity .22s ease,visibility .22s ease; }
     .admin-body.admin-sidebar-open .admin-sidebar-backdrop { visibility:visible; opacity:1; }
-    .admin-body .admin-sidebar-toggle { display:inline-grid; place-items:center; flex:0 0 42px; width:42px; height:42px; padding:0; border:1px solid #c8a45d; background:#111317; color:#c8a45d; box-shadow:0 2px 8px rgba(17,19,23,.18); }
+    .admin-body .admin-sidebar-toggle { display:inline-grid !important; place-items:center; flex:0 0 42px; width:42px; height:42px; padding:0; border:1px solid #c8a45d; background:#111317; color:#c8a45d; box-shadow:0 2px 8px rgba(17,19,23,.18); }
     .admin-body .admin-sidebar-toggle:hover { background:#1d2025; border-color:#d7ad3f; }
     .admin-body .admin-menu-icon { display:grid; gap:4px; width:18px; }
     .admin-body .admin-menu-icon i { display:block; width:18px; height:2px; border-radius:2px; background:#d7ad3f; }
