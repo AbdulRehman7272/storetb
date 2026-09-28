@@ -1396,7 +1396,7 @@ th { color: var(--color-gold-2); }
 .admin-body .admin-rich-editor__surface blockquote { margin:10px 0; padding-left:12px; border-left:3px solid #d7ad3f; color:#59616c; }
 .admin-body .admin-rich-editor__surface code { padding:2px 5px; border-radius:3px; background:#eef1f4; font-family:monospace; }
 .admin-body .pricing-rule { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0; padding:12px; border:1px solid #d8dde3; border-radius:6px; }
-.admin-body .pricing-rule legend { padding:0 5px; color:#20242a; font-weight:700; }
+.admin-body .pricing-rule legend { grid-column:1/-1; padding:0 5px; color:#20242a; font-weight:700; }
 .admin-body .pricing-rule label { display:grid; align-items:start; gap:6px; color:#303741; }
 .admin-body .order-product-trigger { display:flex; align-items:center; gap:12px; width:100%; padding:0; border:0; background:transparent; color:#181b20; text-align:left; cursor:pointer; }
 .admin-body .order-product-trigger img { width:64px; height:76px; flex:0 0 64px; object-fit:cover; border:1px solid #d8dde3; border-radius:5px; background:#eef1f4; }
