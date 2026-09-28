@@ -378,6 +378,8 @@ p { line-height: 1.75; }
 .price-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .price-row strong { color: white; font-size: 18px; }
 .price-row s { color: var(--color-muted); }
+.product-card .price-row { flex-wrap: nowrap; gap: 8px; white-space: nowrap; }
+.product-card .price-row s { font-size: 0.88em; }
 .price-row--large strong { font-size: 30px; color: var(--color-gold-2); }
 .discount-chip { color: var(--color-success); font-weight: 800; }
 .rating { display: flex; gap: 8px; align-items: center; color: var(--color-gold-2); }
@@ -1481,7 +1483,7 @@ th { color: var(--color-gold-2); }
     .product-grid.mobile-cols-2 .product-card__title { font-size:14px; }
     .product-grid.mobile-cols-3 .product-card__title { font-size:12px; line-height:1.25; }
     .product-grid.mobile-cols-3 .product-card__media { aspect-ratio:3/4; }
-    .product-grid.mobile-cols-3 .price-row { gap:3px; font-size:12px; flex-wrap:wrap; }
+    .product-grid.mobile-cols-3 .price-row { gap:3px; font-size:12px; flex-wrap:nowrap; }
     .product-grid.mobile-cols-3 .product-card__actions { gap:4px; }
     .product-grid.mobile-cols-3 .product-card__actions .icon-button { width:30px; height:30px; }
     .product-grid.mobile-cols-3 .product-card__view { min-height:30px; padding-inline:7px; font-size:10px; }
