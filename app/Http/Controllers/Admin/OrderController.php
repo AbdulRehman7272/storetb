@@ -13,7 +13,9 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::query()->with('customer', 'paymentAccount')->withCount('items');
+        $query = Order::query()
+            ->with('customer', 'paymentAccount', 'items.variant', 'items.product.primaryMedia')
+            ->withCount('items');
         foreach (['status', 'payment_status', 'payment_method', 'city', 'province'] as $filter) {
             if ($request->filled($filter)) {
                 $query->where($filter, $request->$filter);

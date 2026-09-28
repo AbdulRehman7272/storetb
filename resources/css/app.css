@@ -1278,6 +1278,13 @@ th { color: var(--color-gold-2); }
 .admin-body .table tbody tr:hover { background:#fafbfc; }
 .admin-body .table tbody tr:last-child td { border-bottom:0; }
 .admin-body .table .thumb { width:52px; height:58px; border-radius:4px; object-fit:cover; vertical-align:middle; margin-right:10px; border:1px solid #e0e4e8; }
+.order-list-product { display:flex; align-items:center; gap:12px; min-width:260px; }
+.order-list-images { display:flex; align-items:center; min-width:54px; }
+.order-list-images img,
+.order-list-images span { width:46px; height:54px; border:2px solid #fff; border-radius:4px; object-fit:cover; background:#f4f5f7; }
+.order-list-images img + img,
+.order-list-images img + span { margin-left:-16px; }
+.order-list-images span { display:grid; place-items:center; color:#353b45; font-size:12px; font-weight:700; }
 .admin-body .cell-product { display:flex; align-items:center; min-width:240px; }
 .admin-body .cell-actions { width:1%; white-space:nowrap; text-align:right; }
 .admin-body .row-actions { display:flex; justify-content:flex-end; gap:6px; }
