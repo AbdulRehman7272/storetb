@@ -38,6 +38,7 @@ class StoreProductRequest extends FormRequest
             'brand_id' => ['nullable', 'exists:brands,id'],
             'vendor_id' => ['nullable', 'exists:vendors,id'],
             'vendor_name' => ['nullable', 'string', 'max:255'],
+            'override_existing' => ['nullable', 'boolean'],
             'sku' => ['nullable', 'string', 'max:255'],
             'vendor_reference' => ['nullable', 'string', 'max:255'],
             'vendor_code' => ['nullable', 'string', 'max:255'],
@@ -85,8 +86,12 @@ class StoreProductRequest extends FormRequest
                 $matchedProduct = Product::query()->where('vendor_code', $mainCode)->when($productId, fn ($query) => $query->whereKeyNot($productId))->first();
                 $matchedVariant = ProductVariant::query()->with('product')->where('vendor_code', $mainCode)->when($productId, fn ($query) => $query->where('product_id', '!=', $productId))->first();
                 $matchedVendorId = $matchedProduct?->vendor_id ?: $matchedVariant?->product?->vendor_id;
-                if (($matchedProduct || $matchedVariant) && (! $vendorId || (int) $matchedVendorId !== (int) $vendorId)) {
-                    $validator->errors()->add('vendor_code', 'This vendor code belongs to another product or vendor.');
+                if ($matchedProduct || $matchedVariant) {
+                    if (! $vendorId || (int) $matchedVendorId !== (int) $vendorId) {
+                        $validator->errors()->add('vendor_code', 'This vendor code belongs to another product or vendor.');
+                    } elseif (! $this->boolean('override_existing')) {
+                        $validator->errors()->add('override_existing', 'Confirm that you want to override the existing vendor product.');
+                    }
                 }
             }
             foreach ($this->input('variants', []) as $index => $variant) {
@@ -110,8 +115,12 @@ class StoreProductRequest extends FormRequest
                 if ($code !== '') {
                     $match = ProductVariant::query()->with('product')->where('vendor_code', $code)
                         ->when($productId, fn ($query) => $query->where('product_id', '!=', $productId))->first();
-                    if ($match && (! $vendorId || (int) $match->product?->vendor_id !== (int) $vendorId)) {
-                        $validator->errors()->add("variants.$index.vendor_code", 'This vendor code belongs to another product or vendor.');
+                    if ($match) {
+                        if (! $vendorId || (int) $match->product?->vendor_id !== (int) $vendorId) {
+                            $validator->errors()->add("variants.$index.vendor_code", 'This vendor code belongs to another product or vendor.');
+                        } elseif (! $this->boolean('override_existing')) {
+                            $validator->errors()->add('override_existing', 'Confirm that you want to override the existing vendor product.');
+                        }
                     }
                 }
             }

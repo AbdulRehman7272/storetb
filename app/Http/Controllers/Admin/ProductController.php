@@ -71,7 +71,7 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request)
     {
         $vendor = $this->resolveVendor($request);
-        $existingVariant = $vendor ? ProductVariant::query()->whereHas('product', fn ($query) => $query->where('vendor_id', $vendor->id))->whereIn('vendor_code', collect($request->input('variants', []))->pluck('vendor_code')->filter())->first() : null;
+        $existingVariant = $vendor && $request->boolean('override_existing') ? ProductVariant::query()->whereHas('product', fn ($query) => $query->where('vendor_id', $vendor->id))->whereIn('vendor_code', collect($request->input('variants', []))->pluck('vendor_code')->filter())->first() : null;
         $product = $existingVariant?->product;
         if ($product) {
             $product->update($this->payload($request, $product));
@@ -130,7 +130,7 @@ class ProductController extends Controller
 
         $product = Product::query()->where('vendor_code', $code)
             ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
-        $variant = ProductVariant::query()->with('product.vendor')->where('vendor_code', $code)
+        $variant = ProductVariant::query()->with('product.vendor', 'product.category', 'product.primaryMedia')->where('vendor_code', $code)
             ->when($request->filled('vendor_name'), fn ($query) => $query->whereHas('product.vendor', fn ($vendor) => $vendor->where('name', $request->query('vendor_name'))))
             ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->where('product_id', '!=', $id))
             ->when($request->integer('exclude_variant_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
@@ -146,6 +146,21 @@ class ProductController extends Controller
                 'sale_price' => $variant->sale_price,
                 'stock' => $variant->stock,
                 'vendor_reference' => $variant->vendor_reference,
+            ] : null,
+            'details' => $variant ? [
+                'name' => $variant->product->name,
+                'image' => $variant->image ? asset($variant->image) : $variant->product->imageUrl(),
+                'vendor' => $variant->product->vendor?->name,
+                'category' => $variant->product->category?->name,
+                'variant' => $variant->name,
+                'sku' => $variant->sku,
+                'vendor_code' => $variant->vendor_code,
+                'vendor_reference' => $variant->vendor_reference,
+                'cost_price' => $variant->cost_price,
+                'regular_price' => $variant->regular_price,
+                'sale_price' => $variant->sale_price,
+                'stock' => $variant->stock,
+                'description' => strip_tags((string) $variant->product->description),
             ] : null,
         ]);
     }
@@ -244,7 +259,7 @@ class ProductController extends Controller
         ])->filter()->join('. ');
         $data['seo_description'] = str($request->input('seo_description') ?: $suggestedDescription)->squish()->limit(160, '')->toString();
         $data['tags'] = collect(explode(',', (string) $request->input('tags_text')))->map(fn ($tag) => trim($tag))->filter()->values()->all();
-        unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image'], $data['vendor_name']);
+        unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image'], $data['vendor_name'], $data['override_existing']);
 
         return $data;
     }
