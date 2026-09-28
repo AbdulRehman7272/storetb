@@ -1458,7 +1458,7 @@ th { color: var(--color-gold-2); }
 @media(max-width:1200px){.admin-body .filters{grid-template-columns:repeat(3,minmax(150px,1fr))}.admin-body .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:1100px){.admin-body .asset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:900px){.admin-body .hero-settings-grid{grid-template-columns:1fr}}
-@media(max-width:760px){.admin-body .filters{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-body .filters .filter-actions{grid-column:1/-1}.admin-body .admin-grid{grid-template-columns:1fr}.admin-body .toolbar{justify-content:flex-start}.admin-body .admin-top h1{font-size:22px}}
+@media(max-width:760px){.admin-body .filters{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-body .filters .filter-actions{grid-column:1/-1}.admin-body .filters .filter-actions .btn-small{border-color:#d7ad3f;background:#d7ad3f;color:#111}.admin-body .filters .filter-actions .btn-small:hover{border-color:#c3982f;background:#c3982f;color:#111}.admin-body .admin-grid{grid-template-columns:1fr}.admin-body .toolbar{justify-content:flex-start}.admin-body .admin-top h1{font-size:22px}}
 @media(max-width:760px){.admin-body .order-product-modal__body{grid-template-columns:1fr}.admin-body .order-product-modal__body>img{max-height:300px}.admin-body .order-product-modal__details dl{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.admin-body .filters{grid-template-columns:1fr}.admin-body .metric-grid{grid-template-columns:1fr}.admin-body .admin-sidebar nav{grid-template-columns:1fr 1fr}.admin-body .admin-sidebar nav a{font-size:12px}.admin-body .form-grid,.admin-body .variant-grid{grid-template-columns:1fr}.admin-body .editor-actions{position:sticky;bottom:0;background:#f4f6f8;padding:10px 0;z-index:5}}
 
@@ -1482,6 +1482,7 @@ th { color: var(--color-gold-2); }
 }
 
 @media(max-width:760px){
+    .product-shelf { margin:14px 8px; padding:28px 12px; border:2px solid var(--color-gold); border-radius:6px; background:#080808; }
     .product-detail { padding:12px; }
     .product-detail .breadcrumbs { margin-bottom:10px; font-size:13px; }
     .product-detail .gallery__main { height:min(350px,62vh); min-height:280px; aspect-ratio:auto; }
