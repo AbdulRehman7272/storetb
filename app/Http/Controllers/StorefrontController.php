@@ -159,6 +159,7 @@ class StorefrontController extends Controller
                 'free_shipping_threshold' => (float) StoreSettings::get('free_shipping_threshold', 5000),
                 'advance_payment_free_shipping' => (bool) StoreSettings::get('advance_payment_free_shipping', false),
                 'advance_payment_discount' => (float) StoreSettings::get('advance_payment_discount', 0),
+                'mobile_product_columns' => (int) StoreSettings::get('mobile_product_columns', 1),
                 'coupon' => ['code' => 'TBRAND500', 'amount' => 500],
             ],
             'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),

@@ -54,6 +54,12 @@
         </div>
     </div></section>
 
+    <section class="panel settings-section"><div class="settings-heading"><div><h2>Mobile Product Layout</h2><p>Choose how many product cards appear in each row on phones.</p></div></div><div class="mobile-column-options" role="radiogroup" aria-label="Products per mobile row">
+        @foreach([1 => 'Large cards', 2 => 'Balanced', 3 => 'Compact'] as $columns => $label)
+            <label><input type="radio" name="mobile_product_columns" value="{{ $columns }}" @checked((int) old('mobile_product_columns',$settings['mobile_product_columns'] ?? 1) === $columns)><span><strong>{{ $columns }}</strong><small>{{ $label }}</small></span></label>
+        @endforeach
+    </div></section>
+
     <section class="panel settings-section"><div class="settings-heading"><div><h2>Landing Page Slider</h2><p>Choose exactly what moves above and below category product sections.</p></div></div><div class="settings-fields" data-slider-settings>
         <label>Slider content<select name="slider_content_type" data-slider-type><option value="categories" @selected(old('slider_content_type',$settings['slider_content_type'] ?? 'categories') === 'categories')>Categories</option><option value="products" @selected(old('slider_content_type',$settings['slider_content_type'] ?? 'categories') === 'products')>Products</option></select></label>
         <label class="check-card"><input type="hidden" name="slider_random" value="0"><input type="checkbox" name="slider_random" value="1" data-slider-random @checked(old('slider_random',$settings['slider_random'] ?? false))><span><strong>Use random items</strong><small>Automatically rotate random saved items of the selected type.</small></span></label>

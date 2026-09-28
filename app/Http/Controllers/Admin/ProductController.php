@@ -114,6 +114,7 @@ class ProductController extends Controller
         $product = Product::query()->where('vendor_code', $code)
             ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
         $variant = ProductVariant::query()->with('product')->where('vendor_code', $code)
+            ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->where('product_id', '!=', $id))
             ->when($request->integer('exclude_variant_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
         $match = $product ?: $variant?->product;
 

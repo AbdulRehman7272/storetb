@@ -78,7 +78,6 @@ class StoreProductRequest extends FormRequest
             $product = $this->route('product');
             $productId = $product instanceof Product ? $product->id : null;
             $mainCode = trim((string) $this->input('vendor_code'));
-            $submittedCodes = [];
 
             if ($mainCode !== '') {
                 $usedByProduct = Product::query()->where('vendor_code', $mainCode)
@@ -87,7 +86,6 @@ class StoreProductRequest extends FormRequest
                 if ($usedByProduct || $usedByVariant) {
                     $validator->errors()->add('vendor_code', 'This vendor code is already assigned to another product or variant.');
                 }
-                $submittedCodes[strtolower($mainCode)] = 'vendor_code';
             }
 
             foreach ($this->input('variants', []) as $index => $variant) {
@@ -110,17 +108,16 @@ class StoreProductRequest extends FormRequest
                 $code = trim((string) ($variant['vendor_code'] ?? ''));
                 if ($code === '') continue;
 
-                $key = strtolower($code);
                 $variantId = filled($variant['id'] ?? null) ? (int) $variant['id'] : null;
                 $usedByProduct = Product::query()->where('vendor_code', $code)
                     ->when($productId, fn ($query) => $query->whereKeyNot($productId))->exists();
                 $usedByVariant = ProductVariant::query()->where('vendor_code', $code)
-                    ->when($variantId, fn ($query) => $query->whereKeyNot($variantId))->exists();
+                    ->when($productId, fn ($query) => $query->where('product_id', '!=', $productId))
+                    ->when(! $productId && $variantId, fn ($query) => $query->whereKeyNot($variantId))->exists();
 
-                if (isset($submittedCodes[$key]) || $usedByProduct || $usedByVariant) {
-                    $validator->errors()->add("variants.$index.vendor_code", 'This vendor code is already assigned to another product or variant.');
+                if ($usedByProduct || $usedByVariant) {
+                    $validator->errors()->add("variants.$index.vendor_code", 'This vendor code is already assigned to another product.');
                 }
-                $submittedCodes[$key] = "variants.$index.vendor_code";
             }
         });
     }

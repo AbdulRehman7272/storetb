@@ -99,7 +99,7 @@
             </aside>
 
             <div>
-                <div v-if="filtered.length" class="product-grid" :class="`product-grid--${display}`">
+                <div v-if="filtered.length" class="product-grid" :class="[`product-grid--${display}`, `mobile-cols-${mobileColumns}`]" :style="{ '--mobile-product-columns': mobileColumns }">
                     <ProductCard v-for="product in visible" :key="product.cardKey || product.slug" :product="product" :display="display" @quick-view="openQuickView" />
                 </div>
                 <div v-else class="empty-state">
@@ -160,6 +160,7 @@ const props = defineProps({
 });
 
 const { data, addToCart } = useCommerce();
+const mobileColumns = Math.min(3, Math.max(1, Number(data.store.mobile_product_columns || 1)));
 const drawer = ref(false);
 const quickView = ref(null);
 const quickColor = ref('');
