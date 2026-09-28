@@ -55,6 +55,9 @@ class PaymentAccountController extends Controller
             'display_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        return $validated + ['is_active' => $request->boolean('is_active')];
+        $validated['display_order'] = $validated['display_order'] ?? 0;
+        $validated['is_active'] = $request->boolean('is_active');
+
+        return $validated;
     }
 }

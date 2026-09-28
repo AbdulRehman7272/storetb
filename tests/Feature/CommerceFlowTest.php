@@ -201,6 +201,21 @@ class CommerceFlowTest extends TestCase
         ])->assertSessionHasErrors('vendor_code');
     }
 
+    public function test_payment_account_defaults_empty_display_order_to_zero(): void
+    {
+        $response = $this->actingAs($this->owner())->post(route('admin.payment-accounts.store'), [
+            'name' => 'JazzCash Test',
+            'type' => 'jazzcash',
+            'account_title' => 'Test Account',
+            'account_number' => '03000000000',
+            'display_order' => '',
+            'is_active' => 1,
+        ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect(route('admin.payment-accounts.index'));
+        $this->assertDatabaseHas('payment_accounts', ['name' => 'JazzCash Test', 'display_order' => 0]);
+    }
+
     public function test_guest_can_checkout_with_cod(): void
     {
         $product = Product::query()->where('status', 'published')->firstOrFail();
