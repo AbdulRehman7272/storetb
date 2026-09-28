@@ -48,7 +48,7 @@ class CommerceFlowTest extends TestCase
         $admin = $this->owner();
 
         $this->actingAs($admin)
-            ->post(route('admin.products.store'), [
+            ->postJson(route('admin.products.store'), [
                 'name' => 'One Minute Product',
                 'product_type' => 'variant',
                 'status' => 'published',
@@ -61,7 +61,8 @@ class CommerceFlowTest extends TestCase
                     'image' => UploadedFile::fake()->image('product.jpg'),
                 ]],
             ])
-            ->assertRedirect();
+            ->assertOk()
+            ->assertJsonStructure(['redirect']);
 
         $this->assertDatabaseHas('products', [
             'name' => 'One Minute Product',

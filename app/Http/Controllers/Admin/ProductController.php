@@ -79,6 +79,10 @@ class ProductController extends Controller
             ? redirect()->route('admin.products.create')->with('status', 'Product saved. Add another one.')
             : redirect()->route('admin.products.edit', $product)->with('status', 'Product saved.');
 
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => $route->getTargetUrl()]);
+        }
+
         return $route;
     }
 
@@ -103,7 +107,13 @@ class ProductController extends Controller
         $this->storeVariants($request, $product);
         $product->collections()->sync($request->input('collection_ids', []));
 
-        return redirect()->route('admin.products.edit', $product)->with('status', 'Product updated.');
+        $redirect = redirect()->route('admin.products.edit', $product)->with('status', 'Product updated.');
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => $redirect->getTargetUrl()]);
+        }
+
+        return $redirect;
     }
 
     public function checkVendorCode(Request $request)
