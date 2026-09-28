@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Vendor;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -36,6 +37,7 @@ class StoreProductRequest extends FormRequest
             'category_id' => ['nullable', 'exists:categories,id'],
             'brand_id' => ['nullable', 'exists:brands,id'],
             'vendor_id' => ['nullable', 'exists:vendors,id'],
+            'vendor_name' => ['nullable', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'vendor_reference' => ['nullable', 'string', 'max:255'],
             'vendor_code' => ['nullable', 'string', 'max:255'],
@@ -77,17 +79,16 @@ class StoreProductRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             $product = $this->route('product');
             $productId = $product instanceof Product ? $product->id : null;
+            $vendorId = $this->integer('vendor_id') ?: Vendor::query()->where('name', trim((string) $this->input('vendor_name')))->value('id');
             $mainCode = trim((string) $this->input('vendor_code'));
-
             if ($mainCode !== '') {
-                $usedByProduct = Product::query()->where('vendor_code', $mainCode)
-                    ->when($productId, fn ($query) => $query->whereKeyNot($productId))->exists();
-                $usedByVariant = ProductVariant::query()->where('vendor_code', $mainCode)->exists();
-                if ($usedByProduct || $usedByVariant) {
-                    $validator->errors()->add('vendor_code', 'This vendor code is already assigned to another product or variant.');
+                $matchedProduct = Product::query()->where('vendor_code', $mainCode)->when($productId, fn ($query) => $query->whereKeyNot($productId))->first();
+                $matchedVariant = ProductVariant::query()->with('product')->where('vendor_code', $mainCode)->when($productId, fn ($query) => $query->where('product_id', '!=', $productId))->first();
+                $matchedVendorId = $matchedProduct?->vendor_id ?: $matchedVariant?->product?->vendor_id;
+                if (($matchedProduct || $matchedVariant) && (! $vendorId || (int) $matchedVendorId !== (int) $vendorId)) {
+                    $validator->errors()->add('vendor_code', 'This vendor code belongs to another product or vendor.');
                 }
             }
-
             foreach ($this->input('variants', []) as $index => $variant) {
                 if (! filled($variant['regular_price'] ?? null) && ! filled($variant['sale_price'] ?? null)) {
                     $validator->errors()->add("variants.$index.sale_price", 'Enter a full price or sale price.');
@@ -106,17 +107,12 @@ class StoreProductRequest extends FormRequest
                     $validator->errors()->add("variants.$index.image", 'Add at least one image for this colour.');
                 }
                 $code = trim((string) ($variant['vendor_code'] ?? ''));
-                if ($code === '') continue;
-
-                $variantId = filled($variant['id'] ?? null) ? (int) $variant['id'] : null;
-                $usedByProduct = Product::query()->where('vendor_code', $code)
-                    ->when($productId, fn ($query) => $query->whereKeyNot($productId))->exists();
-                $usedByVariant = ProductVariant::query()->where('vendor_code', $code)
-                    ->when($productId, fn ($query) => $query->where('product_id', '!=', $productId))
-                    ->when(! $productId && $variantId, fn ($query) => $query->whereKeyNot($variantId))->exists();
-
-                if ($usedByProduct || $usedByVariant) {
-                    $validator->errors()->add("variants.$index.vendor_code", 'This vendor code is already assigned to another product.');
+                if ($code !== '') {
+                    $match = ProductVariant::query()->with('product')->where('vendor_code', $code)
+                        ->when($productId, fn ($query) => $query->where('product_id', '!=', $productId))->first();
+                    if ($match && (! $vendorId || (int) $match->product?->vendor_id !== (int) $vendorId)) {
+                        $validator->errors()->add("variants.$index.vendor_code", 'This vendor code belongs to another product or vendor.');
+                    }
                 }
             }
         });

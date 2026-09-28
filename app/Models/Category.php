@@ -14,6 +14,8 @@ class Category extends Model
             'is_active' => 'boolean',
             'show_in_navbar' => 'boolean',
             'is_featured' => 'boolean',
+            'margin_value' => 'decimal:2',
+            'discount_value' => 'decimal:2',
         ];
     }
 

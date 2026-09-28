@@ -82,6 +82,7 @@ Route::prefix($adminPath)->name('admin.')->group(function () {
             Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
             Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
             Route::patch('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+            Route::delete('orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
             Route::get('payment-proofs/{proof}', [OrderController::class, 'proof'])->name('proofs.show');
         });
         Route::get('customers', [CustomerController::class, 'index'])->middleware('permission:manage-customers')->name('customers.index');

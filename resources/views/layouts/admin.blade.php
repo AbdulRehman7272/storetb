@@ -288,6 +288,21 @@ document.querySelectorAll('textarea[name="description"]').forEach((textarea) => 
         sync();
     });
     surface.addEventListener('input', sync);
+    surface.addEventListener('paste', (event) => {
+        const pasted = event.clipboardData?.getData('text/plain') || '';
+        if (!/[\*_~`]/.test(pasted)) return;
+        event.preventDefault();
+        const holder = document.createElement('div');
+        holder.textContent = pasted;
+        const formatted = holder.innerHTML
+            .replace(/```([^`]+)```/gs, '<code>$1</code>')
+            .replace(/\*([^*\n]+)\*/g, '<strong>$1</strong>')
+            .replace(/_([^_\n]+)_/g, '<em>$1</em>')
+            .replace(/~([^~\n]+)~/g, '<s>$1</s>')
+            .replace(/\r?\n/g, '<br>');
+        document.execCommand('insertHTML', false, formatted);
+        sync();
+    });
     textarea.form?.addEventListener('submit', sync);
 });
 </script>

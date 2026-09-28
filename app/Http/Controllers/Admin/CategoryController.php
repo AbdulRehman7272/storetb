@@ -28,7 +28,7 @@ class CategoryController extends Controller
     public function create()
     {
         return view('admin.categories.form', [
-            'category' => new Category(['is_active' => true, 'show_in_navbar' => true]),
+            'category' => new Category(['is_active' => true, 'show_in_navbar' => true, 'margin_type' => 'flat', 'margin_value' => 0, 'discount_type' => 'percentage', 'discount_value' => 0]),
             'parents' => Category::query()->orderBy('name')->get(),
         ]);
     }
@@ -74,6 +74,10 @@ class CategoryController extends Controller
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string'],
             'group_name' => ['nullable', 'string', 'max:100'],
+            'margin_type' => ['required', 'in:flat,percentage'],
+            'margin_value' => ['required', 'numeric', 'min:0'],
+            'discount_type' => ['required', 'in:flat,percentage'],
+            'discount_value' => ['required', 'numeric', 'min:0'],
             'main_image_upload' => ['nullable', 'image', 'max:5120'],
             'hero_image_upload' => ['nullable', 'image', 'max:5120'],
             'banner_upload' => ['nullable', 'image', 'max:5120'],

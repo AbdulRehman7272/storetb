@@ -70,14 +70,21 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request)
     {
-        $product = Product::query()->create($this->payload($request));
+        $vendor = $this->resolveVendor($request);
+        $existingVariant = $vendor ? ProductVariant::query()->whereHas('product', fn ($query) => $query->where('vendor_id', $vendor->id))->whereIn('vendor_code', collect($request->input('variants', []))->pluck('vendor_code')->filter())->first() : null;
+        $product = $existingVariant?->product;
+        if ($product) {
+            $product->update($this->payload($request, $product));
+        } else {
+            $product = Product::query()->create($this->payload($request));
+        }
         $this->storeImage($request, $product);
         $this->storeVariants($request, $product);
         $product->collections()->sync($request->input('collection_ids', []));
 
         $route = $request->input('action') === 'another'
             ? redirect()->route('admin.products.create')->with('status', 'Product saved. Add another one.')
-            : redirect()->route('admin.products.edit', $product)->with('status', 'Product saved.');
+            : redirect()->route('admin.products.edit', $product)->with('status', $existingVariant ? 'Existing vendor product updated.' : 'Product saved.');
 
         if ($request->expectsJson()) {
             return response()->json(['redirect' => $route->getTargetUrl()]);
@@ -123,7 +130,8 @@ class ProductController extends Controller
 
         $product = Product::query()->where('vendor_code', $code)
             ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
-        $variant = ProductVariant::query()->with('product')->where('vendor_code', $code)
+        $variant = ProductVariant::query()->with('product.vendor')->where('vendor_code', $code)
+            ->when($request->filled('vendor_name'), fn ($query) => $query->whereHas('product.vendor', fn ($vendor) => $vendor->where('name', $request->query('vendor_name'))))
             ->when($request->integer('exclude_product_id'), fn ($query, $id) => $query->where('product_id', '!=', $id))
             ->when($request->integer('exclude_variant_id'), fn ($query, $id) => $query->whereKeyNot($id))->first();
         $match = $product ?: $variant?->product;
@@ -132,6 +140,13 @@ class ProductController extends Controller
             'exists' => (bool) $match,
             'name' => $match?->name,
             'url' => $match ? route('admin.products.edit', $match) : null,
+            'variant' => $variant ? [
+                'cost_price' => $variant->cost_price,
+                'regular_price' => $variant->regular_price,
+                'sale_price' => $variant->sale_price,
+                'stock' => $variant->stock,
+                'vendor_reference' => $variant->vendor_reference,
+            ] : null,
         ]);
     }
 
@@ -198,6 +213,7 @@ class ProductController extends Controller
     private function payload(StoreProductRequest $request, ?Product $product = null): array
     {
         $data = $request->validated();
+        $data['vendor_id'] = $this->resolveVendor($request)?->id;
         $data['product_type'] = 'variant';
         $data['slug'] = ($data['slug'] ?? null) ?: Str::slug($data['name']);
         if ($product && Product::query()->where('slug', $data['slug'])->whereKeyNot($product->id)->exists()) {
@@ -228,9 +244,20 @@ class ProductController extends Controller
         ])->filter()->join('. ');
         $data['seo_description'] = str($request->input('seo_description') ?: $suggestedDescription)->squish()->limit(160, '')->toString();
         $data['tags'] = collect(explode(',', (string) $request->input('tags_text')))->map(fn ($tag) => trim($tag))->filter()->values()->all();
-        unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image']);
+        unset($data['collection_ids'], $data['tags_text'], $data['variants'], $data['image'], $data['vendor_name']);
 
         return $data;
+    }
+
+    private function resolveVendor(Request $request): ?Vendor
+    {
+        $name = trim((string) $request->input('vendor_name'));
+        if ($name === '') return filled($request->input('vendor_id')) ? Vendor::query()->find($request->input('vendor_id')) : null;
+
+        return Vendor::query()->firstOrCreate(
+            ['name' => $name],
+            ['slug' => Str::slug($name).'-'.Str::lower(Str::random(4)), 'is_active' => true]
+        );
     }
 
     private function storeImage(Request $request, Product $product): void

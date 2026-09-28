@@ -16,6 +16,11 @@ class OrderController extends Controller
         $query = Order::query()
             ->with('customer', 'paymentAccount', 'items.variant', 'items.product.primaryMedia')
             ->withCount('items');
+        if ($request->get('view', 'pending') === 'pending') {
+            $query->whereIn('status', ['new', 'confirmed']);
+        } elseif ($request->get('view') === 'arranged') {
+            $query->whereIn('status', ['packed', 'shipped', 'delivered', 'cancelled', 'returned', 'exchanged']);
+        }
         foreach (['status', 'payment_status', 'payment_method', 'city', 'province'] as $filter) {
             if ($request->filled($filter)) {
                 $query->where($filter, $request->$filter);
@@ -74,5 +79,11 @@ class OrderController extends Controller
     {
         abort_unless(Storage::exists($proof->path), 404);
         return Storage::download($proof->path, $proof->original_name);
+    }
+
+    public function destroy(Order $order)
+    {
+        $order->delete();
+        return redirect()->route('admin.orders.index')->with('status', 'Order deleted permanently.');
     }
 }

@@ -131,7 +131,7 @@ const TrustStrip = defineComponent({
 const ProductShelf = defineComponent({
     components: { ProductCard },
     props: { title: String, eyebrow: String, products: Array },
-    template: `<section class="section-block"><div class="section-head"><div><p class="eyebrow">{{ eyebrow }}</p><h2>{{ title }}</h2></div><a :href="$toUrl('/shop')">View all</a></div><div class="product-grid"><ProductCard v-for="product in products" :key="product.slug" :product="product" /></div></section>`,
+    template: `<section class="section-block product-shelf"><div class="section-head"><div><p class="eyebrow">{{ eyebrow }}</p><h2>{{ title }}</h2></div><a :href="$toUrl('/shop')">View all</a></div><div class="product-grid"><ProductCard v-for="product in products" :key="product.slug" :product="product" /></div></section>`,
 });
 
 const HomePage = defineComponent({
@@ -249,7 +249,7 @@ const CategoryPage = defineComponent({
     template: `
         <section class="hero hero--category"><picture><img class="hero__image" :src="category.hero" :alt="category.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Category Storefront</p><h1>{{ category.name }}</h1><div v-if="category.description" class="category-hero-description rich-content" v-html="category.description"></div><div class="hero__actions"><a class="button button--gold" href="#listing">Shop now</a><a class="button button--ghost" :href="$toUrl('/categories')">All categories</a></div></div></section>
         <CategoryRibbon />
-        <ProductGrid id="listing" :products="products" title="Products" :eyebrow="category.name" :category-slug="category.slug" expand-variants />
+        <ProductGrid id="listing" :products="products" title="Products" :eyebrow="category.name" expand-variants />
         <section v-if="category.sections.length" class="section-block category-sections"><div class="section-head section-head--compact"><div><p class="eyebrow">Browse Sections</p><h2>{{ category.name }}</h2></div></div><div class="chips"><a href="#listing">All Products</a><a v-for="section in category.sections" :key="section" href="#listing">{{ section }}</a></div></section>
         <LatestStockSlider :category="category" :products="products" />
         <TrustStrip />
