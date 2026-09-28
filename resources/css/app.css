@@ -1482,6 +1482,9 @@ th { color: var(--color-gold-2); }
 }
 
 @media(max-width:760px){
+    .filter-toggle.button--ghost { border-color:var(--color-gold) !important; background:var(--color-gold) !important; color:#111 !important; box-shadow:none; }
+    .filter-toggle.button--ghost:hover { border-color:var(--color-gold-2) !important; background:var(--color-gold-2) !important; color:#111 !important; }
+    .latest-stock { border:2px solid var(--color-gold); box-shadow:0 0 0 1px rgba(215,173,63,.18),0 18px 48px rgba(0,0,0,.26); }
     .product-shelf { margin:14px 8px; padding:28px 12px; border:2px solid var(--color-gold); border-radius:6px; background:#080808; }
     .product-detail { padding:12px; }
     .product-detail .breadcrumbs { margin-bottom:10px; font-size:13px; }
