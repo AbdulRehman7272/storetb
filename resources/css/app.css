@@ -1494,6 +1494,10 @@ th { color: var(--color-gold-2); }
 
 .admin-body .variant-shade-field { align-content:start; }
 .admin-body .variant-shade-field input[type=color] { cursor:pointer; }
+.admin-body .pick-image-colour { width:100%; justify-content:center; margin-top:7px; }
+.admin-body .pick-image-colour.active { border-color:#9a7417; background:#fff3cd; color:#6f520d; }
+.admin-body .variant-card.is-picking-colour .variant-gallery-preview { border-color:#c8a45d; box-shadow:0 0 0 2px rgba(200,164,93,.22); }
+.admin-body .variant-card.is-picking-colour .variant-gallery-preview img { cursor:crosshair; touch-action:none; }
 .admin-body .variant-colour-presets { display:none; }
 .admin-body .variant-colour-presets button { width:25px; height:25px; padding:0; border:2px solid #fff; border-radius:50%; background:var(--preset-colour); box-shadow:0 0 0 1px #aeb5bf; }
 .admin-body .variant-colour-presets button:focus-visible { box-shadow:0 0 0 3px rgba(200,164,93,.45); }
@@ -1503,4 +1507,5 @@ th { color: var(--color-gold-2); }
 @media(max-width:600px){
     .admin-body .variant-shade-field input[type=color] { height:58px; min-height:58px; }
     .admin-body .variant-shade-field { grid-column:auto; }
+    .admin-body .pick-image-colour { min-height:46px; font-size:14px; }
 }
