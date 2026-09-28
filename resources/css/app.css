@@ -1279,12 +1279,25 @@ th { color: var(--color-gold-2); }
 .admin-body .table tbody tr:last-child td { border-bottom:0; }
 .admin-body .table .thumb { width:52px; height:58px; border-radius:4px; object-fit:cover; vertical-align:middle; margin-right:10px; border:1px solid #e0e4e8; }
 .order-list-product { display:flex; flex-direction:column; align-items:flex-start; gap:7px; min-width:220px; }
-.order-list-images { display:flex; align-items:center; min-width:76px; }
+.order-list-images { display:flex; align-items:center; min-width:76px; padding:4px; border:1px solid #c8a24f; border-radius:6px; background:#fff; cursor:pointer; }
 .order-list-images img,
 .order-list-images span { width:70px; height:82px; border:2px solid #fff; border-radius:4px; object-fit:cover; background:#f4f5f7; }
 .order-list-images img + img,
 .order-list-images img + span { margin-left:-20px; }
 .order-list-images span { display:grid; place-items:center; color:#353b45; font-size:12px; font-weight:700; }
+.order-list-images:hover { border-color:#8d6815; box-shadow:0 0 0 2px rgba(200,162,79,.16); }
+.admin-body .order-gallery-modal .modal-dialog { width:min(1100px,calc(100% - 28px)); max-width:1100px; }
+.admin-body .order-gallery-modal .modal-content { overflow:hidden; border:0; border-radius:7px; background:#fff; box-shadow:0 24px 70px rgba(0,0,0,.28); }
+.admin-body .order-gallery-modal .modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #e1e5ea; }
+.admin-body .order-gallery-modal .modal-header small { color:#9a7417; font-weight:700; text-transform:uppercase; }
+.admin-body .order-gallery-modal .modal-title { margin:3px 0 0; color:#181b20; font-size:22px; }
+.order-gallery-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; max-height:75vh; overflow:auto; padding:20px; }
+.order-gallery-grid figure { margin:0; overflow:hidden; border:1px solid #d5a936; border-radius:6px; background:#f8f9fa; }
+.order-gallery-grid img { width:100%; height:260px; display:block; object-fit:contain; background:#f1f2f4; }
+.order-gallery-grid figcaption { display:grid; gap:3px; padding:11px 12px; border-top:1px solid #e1e5ea; }
+.order-gallery-grid figcaption strong { color:#181b20; }
+.order-gallery-grid figcaption span,
+.order-gallery-grid figcaption small { color:#69717c; }
 .admin-body .cell-product { display:flex; align-items:center; min-width:240px; }
 .admin-body .cell-actions { width:1%; white-space:nowrap; text-align:right; }
 .admin-body .row-actions { display:flex; justify-content:flex-end; gap:6px; }
