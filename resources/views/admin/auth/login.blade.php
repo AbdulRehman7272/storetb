@@ -16,8 +16,11 @@
         @if($errors->any())<div class="alert alert-danger py-2">{{ $errors->first() }}</div>@endif
         <input name="username" type="text" placeholder="Username" value="{{ old('username', 'admin') }}" autocomplete="username" required>
         <input name="password" type="password" placeholder="Password" required>
-        <label><input type="checkbox" name="remember"> Remember me</label>
-        <button class="btn">Login</button>
+        <label class="login-remember">
+            <input type="checkbox" name="remember" value="1">
+            <span>Remember me</span>
+        </label>
+        <button type="submit" class="login-submit">Login</button>
     </form>
 </body>
 </html>
