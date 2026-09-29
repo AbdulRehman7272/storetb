@@ -268,6 +268,47 @@ class CommerceFlowTest extends TestCase
         $this->assertDatabaseHas('orders', ['customer_name' => 'Vue Customer', 'payment_method' => 'cod']);
     }
 
+    public function test_storefront_checkout_accepts_an_out_of_stock_product(): void
+    {
+        $product = Product::query()->where('status', 'published')->firstOrFail();
+        $product->update(['stock' => 0]);
+
+        $this->postJson(route('checkout.frontend'), [
+            'full_name' => 'Backorder Customer',
+            'mobile' => '03001112223',
+            'province' => 'Punjab',
+            'city' => 'Lahore',
+            'address' => '13 Storefront Street',
+            'payment_method' => 'cod',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertOk();
+
+        $this->assertDatabaseHas('orders', ['customer_name' => 'Backorder Customer']);
+        $this->assertSame(-1, $product->fresh()->stock);
+    }
+
+    public function test_updating_category_pricing_reprices_its_variants(): void
+    {
+        $product = Product::query()->whereHas('variants')->firstOrFail();
+        $category = $product->category;
+        $variant = $product->variants()->firstOrFail();
+        $variant->update(['cost_price' => 100, 'regular_price' => 100, 'sale_price' => null]);
+
+        $this->actingAs($this->owner())->put(route('admin.categories.update', $category), [
+            'name' => $category->name,
+            'slug' => $category->slug,
+            'group_name' => $category->group_name,
+            'display_order' => $category->display_order,
+            'margin_type' => 'flat',
+            'margin_value' => 100,
+            'discount_type' => 'percentage',
+            'discount_value' => 0,
+            'is_active' => 1,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('product_variants', ['id' => $variant->id, 'regular_price' => 200, 'sale_price' => 200]);
+    }
+
     public function test_admin_can_delete_unused_products_and_categories(): void
     {
         $admin = $this->owner();

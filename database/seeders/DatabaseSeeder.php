@@ -82,6 +82,7 @@ class DatabaseSeeder extends Seeder
             ['homepage_category_slug', null, 'homepage'],
             ['slider_content_type', 'categories', 'slider'],
             ['mobile_product_columns', 1, 'catalog'],
+            ['catalog_display_mode', 'load_more', 'catalog'],
             ['slider_random', false, 'slider'],
             ['slider_category_ids', [], 'slider'],
             ['slider_product_ids', [], 'slider'],

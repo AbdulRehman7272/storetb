@@ -190,7 +190,7 @@ const LatestStockSlider = defineComponent({
         <section v-if="current" class="latest-stock" aria-label="Latest in stock products">
             <div class="latest-stock__media">
                 <img :src="current.images[0]" :alt="current.name">
-                <span class="badge">{{ current.badge || 'In Stock' }}</span>
+                <span class="badge">In Stock</span>
             </div>
             <div class="latest-stock__content">
                 <p class="eyebrow">Latest In Stock</p>

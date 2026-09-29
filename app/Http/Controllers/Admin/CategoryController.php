@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -49,7 +50,10 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        $category->update($this->payload($request));
+        DB::transaction(function () use ($request, $category) {
+            $category->update($this->payload($request));
+            $this->repriceProducts($category);
+        });
         return redirect()->route('admin.categories.index')->with('status', 'Category updated.');
     }
 
@@ -61,6 +65,40 @@ class CategoryController extends Controller
 
         $category->delete();
         return back()->with('status', 'Category deleted permanently.');
+    }
+
+    private function repriceProducts(Category $category): void
+    {
+        $category->products()->with('variants')->get()->each(function ($product) use ($category) {
+            $product->variants->each(function ($variant) use ($category) {
+                if ($variant->cost_price === null) return;
+                [$fullPrice, $salePrice] = $this->pricesFromCost((float) $variant->cost_price, $category);
+                $variant->update(['regular_price' => $fullPrice, 'sale_price' => $salePrice]);
+            });
+
+            if ($product->variants->isNotEmpty()) {
+                $product->update([
+                    'regular_price' => $product->variants->min('regular_price') ?? 0,
+                    'sale_price' => $product->variants->min('sale_price'),
+                ]);
+            } elseif ($product->cost_price !== null) {
+                [$fullPrice, $salePrice] = $this->pricesFromCost((float) $product->cost_price, $category);
+                $product->update(['regular_price' => $fullPrice, 'sale_price' => $salePrice]);
+            }
+        });
+    }
+
+    private function pricesFromCost(float $cost, Category $category): array
+    {
+        $margin = (float) $category->margin_value;
+        $discount = (float) $category->discount_value;
+        $sale = $category->margin_type === 'percentage' ? $cost * (1 + $margin / 100) : $cost + $margin;
+        $full = $category->discount_type === 'percentage' && $discount > 0
+            ? $sale / (1 - min($discount, 99.99) / 100)
+            : $sale + $discount;
+        $roundToFifty = fn (float $value) => max(0, round($value / 50) * 50);
+
+        return [$roundToFifty($full), $roundToFifty($sale)];
     }
 
     private function payload(Request $request): array

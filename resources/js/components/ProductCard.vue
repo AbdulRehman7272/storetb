@@ -1,7 +1,6 @@
 <template>
     <article class="product-card" :class="{ 'product-card--list': display === 'list' }">
         <a class="product-card__media" :href="productUrl" @click="addRecentlyViewed(product.slug)">
-            <span v-if="product.badge" class="badge">{{ product.badge }}</span>
             <span v-if="discountPercent(product)" class="badge badge--discount">-{{ discountPercent(product) }}%</span>
             <img
                 :src="activeImage"

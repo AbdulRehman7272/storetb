@@ -160,6 +160,7 @@ class StorefrontController extends Controller
                 'advance_payment_free_shipping' => (bool) StoreSettings::get('advance_payment_free_shipping', false),
                 'advance_payment_discount' => (float) StoreSettings::get('advance_payment_discount', 0),
                 'mobile_product_columns' => (int) StoreSettings::get('mobile_product_columns', 1),
+                'catalog_display_mode' => StoreSettings::get('catalog_display_mode', 'load_more'),
                 'coupon' => ['code' => 'TBRAND500', 'amount' => 500],
             ],
             'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),
@@ -185,7 +186,7 @@ class StorefrontController extends Controller
             $colour = $variant->optionValues->firstWhere('option.slug', 'colour');
             $size = $variant->optionValues->firstWhere('option.slug', 'size');
             $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->map(fn ($image) => $this->assetUrl($image))->values();
-            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images];
+            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price !== null && $variant->sale_price < $variant->regular_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images];
         })->values();
         $images = collect($product->media->map(fn ($media) => $this->assetUrl($media->path))->filter()->all())
             ->merge($variants->flatMap(fn ($variant) => $variant['images'])->filter()->all())
@@ -194,7 +195,7 @@ class StorefrontController extends Controller
         if ($images->isEmpty()) $images->push($product->imageUrl());
         $lowestVariant = $variants->sortBy('price')->first();
         $price = $product->product_type === 'variant' && $lowestVariant ? $lowestVariant['price'] : $product->price();
-        $originalPrice = $product->product_type === 'variant' && $lowestVariant ? $lowestVariant['original_price'] : ($product->sale_price ? (float) $product->regular_price : null);
+        $originalPrice = $product->product_type === 'variant' && $lowestVariant ? $lowestVariant['original_price'] : ($product->sale_price !== null && $product->sale_price < $product->regular_price ? (float) $product->regular_price : null);
         $colors = $variants->pluck('color')->filter()->unique()->values();
         $sizes = $variants->pluck('size')->filter()->unique()->values();
         $swatches = $variants->filter(fn ($v) => $v['color'])->mapWithKeys(fn ($v) => [$v['color'] => $v['swatch']])->all();

@@ -184,7 +184,6 @@ class CheckoutController extends Controller
                 $product = Product::with('primaryMedia')->where('status', 'published')->lockForUpdate()->findOrFail($line['product_id']);
                 $variant = filled($line['variant_id'] ?? null) ? ProductVariant::where('product_id', $product->id)->where('is_enabled', true)->lockForUpdate()->findOrFail($line['variant_id']) : null;
                 $stock = $variant ?: $product;
-                abort_if($stock->stock < $line['quantity'], 422, "Insufficient stock for {$product->name}.");
                 return compact('product', 'variant', 'stock', 'line') + ['price' => $variant?->price() ?? $product->price()];
             });
             $subtotal = $lines->sum(fn ($line) => $line['price'] * $line['line']['quantity']);

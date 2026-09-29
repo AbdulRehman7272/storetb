@@ -60,6 +60,11 @@
         @endforeach
     </div></section>
 
+    <section class="panel settings-section"><div class="settings-heading"><div><h2>Product Loading</h2><p>Choose whether catalog pages show products in batches or display every matching item.</p></div></div><div class="mobile-column-options" role="radiogroup" aria-label="Catalog product loading">
+        <label><input type="radio" name="catalog_display_mode" value="load_more" @checked(old('catalog_display_mode',$settings['catalog_display_mode'] ?? 'load_more') === 'load_more')><span><strong>Load more</strong><small>Show products in batches of eight.</small></span></label>
+        <label><input type="radio" name="catalog_display_mode" value="all" @checked(old('catalog_display_mode',$settings['catalog_display_mode'] ?? 'load_more') === 'all')><span><strong>Show all</strong><small>Display every matching product immediately.</small></span></label>
+    </div></section>
+
     <section class="panel settings-section"><div class="settings-heading"><div><h2>Landing Page Slider</h2><p>Choose exactly what moves above and below category product sections.</p></div></div><div class="settings-fields" data-slider-settings>
         <label>Slider content<select name="slider_content_type" data-slider-type><option value="categories" @selected(old('slider_content_type',$settings['slider_content_type'] ?? 'categories') === 'categories')>Categories</option><option value="products" @selected(old('slider_content_type',$settings['slider_content_type'] ?? 'categories') === 'products')>Products</option></select></label>
         <label class="check-card"><input type="hidden" name="slider_random" value="0"><input type="checkbox" name="slider_random" value="1" data-slider-random @checked(old('slider_random',$settings['slider_random'] ?? false))><span><strong>Use random items</strong><small>Automatically rotate random saved items of the selected type.</small></span></label>

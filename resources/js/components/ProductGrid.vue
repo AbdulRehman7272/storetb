@@ -119,11 +119,7 @@
                 <div class="quick-view-gallery">
                     <img class="quick-view-gallery__main" :src="quickImage || quickImages[0]" :alt="quickView.name">
                 </div>
-                <div class="quick-view-info">
-                    <p class="eyebrow">Quick View</p>
-                    <h3>{{ quickView.name }}</h3>
-                    <p>{{ quickView.short_description }}</p>
-                    <p class="price-row"><strong>{{ formatPrice(quickVariant?.price ?? quickView.price) }}</strong><s v-if="quickVariant?.original_price ?? quickView.original_price">{{ formatPrice(quickVariant?.original_price ?? quickView.original_price) }}</s></p>
+                <div class="quick-view-options">
                     <div class="quick-view-colors" v-if="quickView.colors?.length">
                         <strong>Colour</strong>
                         <button v-for="color in quickView.colors" :key="color" type="button" :class="{ selected: quickColor === color }" @click="selectQuickColor(color)">
@@ -133,6 +129,12 @@
                     <div class="quick-view-thumbs" aria-label="Variant images">
                         <button v-for="image in quickImages" :key="image" type="button" :class="{ selected: quickImage === image }" @click="quickImage = image"><img :src="image" alt=""></button>
                     </div>
+                </div>
+                <div class="quick-view-info">
+                    <p class="eyebrow">Quick View</p>
+                    <h3>{{ quickView.name }}</h3>
+                    <p>{{ quickView.short_description }}</p>
+                    <p class="price-row"><strong>{{ formatPrice(quickVariant?.price ?? quickView.price) }}</strong><s v-if="quickVariant?.original_price ?? quickView.original_price">{{ formatPrice(quickVariant?.original_price ?? quickView.original_price) }}</s></p>
                     <div class="modal__actions">
                         <a class="button button--ghost" :href="$toUrl('/product/' + quickView.slug)">View details</a>
                         <button class="button button--gold" type="button" @click="addQuickToCart">Add to cart</button>
@@ -145,7 +147,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import ProductCard from './ProductCard.vue';
 import { discountPercent, formatPrice, useCommerce } from '../composables/useCommerce';
 
@@ -161,6 +163,7 @@ const props = defineProps({
 
 const { data, addToCart } = useCommerce();
 const mobileColumns = Math.min(3, Math.max(1, Number(data.store.mobile_product_columns || 1)));
+const displayAllProducts = data.store.catalog_display_mode === 'all';
 const drawer = ref(false);
 const quickView = ref(null);
 const quickColor = ref('');
@@ -182,7 +185,8 @@ const closeSortOutside = (event) => {
     if (sortOpen.value && !event.target.closest('.sort-menu')) sortOpen.value = false;
 };
 onMounted(() => document.addEventListener('pointerdown', closeSortOutside));
-onBeforeUnmount(() => document.removeEventListener('pointerdown', closeSortOutside));
+onBeforeUnmount(() => { document.removeEventListener('pointerdown', closeSortOutside); document.body.classList.remove('store-filter-open'); });
+watch(drawer, open => document.body.classList.toggle('store-filter-open', open));
 const shuffleRanks = new Map();
 function shuffleRank(product) {
     const key = product.cardKey || product.variantSku || product.slug;
@@ -259,7 +263,7 @@ const filtered = computed(() => {
     });
 });
 
-const visible = computed(() => filtered.value.slice(0, limit.value));
+const visible = computed(() => displayAllProducts ? filtered.value : filtered.value.slice(0, limit.value));
 const sortLabel = computed(() => sortOptions.find((option) => option.value === sort.value)?.label || 'Shuffled');
 const chips = computed(() => [
     ...filters.categories.map((value) => ({ key: 'categories', value, label: categoryName(value) })),
