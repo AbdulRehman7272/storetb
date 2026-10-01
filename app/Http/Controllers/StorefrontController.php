@@ -130,6 +130,7 @@ class StorefrontController extends Controller
             'collection' => $context['catalogCollection'] ?? null,
             'q' => $page === 'search' ? ($context['query'] ?? '') : null,
         ]);
+        $catalogFilters['sort'] = 'random';
         $catalogPages = ['home', 'shop', 'search', 'category', 'collection'];
         $batchSize = $this->catalogBatchSize();
         $catalogPage = in_array($page, $catalogPages, true) ? $this->catalogQuery($catalogFilters)->paginate($batchSize) : null;
@@ -257,7 +258,7 @@ class StorefrontController extends Controller
             'price-low' => $query->orderByRaw('COALESCE(sale_price, regular_price) asc'),
             'price-high' => $query->orderByRaw('COALESCE(sale_price, regular_price) desc'),
             'discount' => $query->orderByRaw('(regular_price - COALESCE(sale_price, regular_price)) desc'),
-            'random' => $query->orderByRaw("CRC32(CONCAT(id, 'tbrand'))"),
+            'random' => $query->orderByRaw('((id * 1103515245) + 12345) % 2147483647')->orderBy('id'),
             default => $query->latest('published_at')->latest('id'),
         };
     }
