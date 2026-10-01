@@ -11,6 +11,8 @@ use App\Models\ShippingMethod;
 use App\Support\StoreSettings;
 use App\Support\HtmlSanitizer;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 
 class StorefrontController extends Controller
 {
@@ -43,22 +45,43 @@ class StorefrontController extends Controller
     public function category(string $slug)
     {
         $category = Category::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
-        $products = $this->products()->where('category_id', $category->id)->get();
-        return $this->render('category', ['category' => $this->categoryData($category), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => $category->seo_title ?: $category->name, 'description' => $category->seo_description ?: str($category->description)->stripTags()->squish()->limit(160, '')]);
+        return $this->render('category', ['category' => $this->categoryData($category), 'catalogCategory' => $category->slug], ['title' => $category->seo_title ?: $category->name, 'description' => $category->seo_description ?: str($category->description)->stripTags()->squish()->limit(160, '')]);
     }
 
     public function collection(string $slug)
     {
         $collection = Collection::query()->where('slug', $slug)->where('is_active', true)->firstOrFail();
-        $products = $collection->products()->with($this->productRelations())->where('status', 'published')->get();
-        return $this->render('collection', ['collection' => $this->collectionData($collection), 'products' => $products->map(fn ($p) => $this->productData($p))->values()], ['title' => $collection->name, 'description' => $collection->description]);
+        return $this->render('collection', ['collection' => $this->collectionData($collection), 'catalogCollection' => $collection->slug], ['title' => $collection->name, 'description' => $collection->description]);
     }
 
     public function product(string $slug)
     {
         $product = $this->products()->where('slug', $slug)->firstOrFail();
         $related = $this->products()->where('category_id', $product->category_id)->whereKeyNot($product->id)->limit(8)->get();
-        return $this->render('product', ['product' => $this->productData($product), 'related' => $related->map(fn ($p) => $this->productData($p))->values()], ['title' => $product->seo_title ?: $product->name, 'description' => $product->seo_description ?: str($product->description)->stripTags()->squish()->limit(155, ''), 'image' => $product->imageUrl(), 'type' => 'product']);
+        return $this->render('product', ['product' => $this->productData($product), 'related' => $related->map(fn ($p) => $this->productData($p, false))->values()], ['title' => $product->seo_title ?: $product->name, 'description' => $product->seo_description ?: str($product->description)->stripTags()->squish()->limit(155, ''), 'image' => $product->imageUrl(), 'type' => 'product']);
+    }
+
+    public function catalog(Request $request)
+    {
+        $validated = $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'], 'q' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:255'], 'categories' => ['nullable', 'array'], 'categories.*' => ['string', 'max:255'],
+            'collection' => ['nullable', 'string', 'max:255'], 'collections' => ['nullable', 'array'], 'collections.*' => ['string', 'max:255'],
+            'colors' => ['nullable', 'array'], 'colors.*' => ['string', 'max:80'],
+            'sizes' => ['nullable', 'array'], 'sizes.*' => ['string', 'max:80'],
+            'min' => ['nullable', 'numeric', 'min:0'], 'max' => ['nullable', 'numeric', 'min:0'],
+            'available' => ['nullable', 'boolean'], 'discounted' => ['nullable', 'boolean'],
+            'sort' => ['nullable', 'in:newest,price-low,price-high,discount,random'],
+            'slugs' => ['nullable', 'array', 'max:100'], 'slugs.*' => ['string', 'max:255'],
+        ]);
+
+        $batchSize = $this->catalogBatchSize();
+        $paginator = $this->catalogQuery($validated)->paginate($batchSize)->withQueryString();
+
+        return response()->json([
+            'data' => $paginator->getCollection()->map(fn ($product) => $this->productData($product, false))->values(),
+            'meta' => ['current_page' => $paginator->currentPage(), 'last_page' => $paginator->lastPage(), 'per_page' => $paginator->perPage(), 'total' => $paginator->total()],
+        ])->header('Cache-Control', 'private, no-store, max-age=0');
     }
 
     public function simple(string $page)
@@ -97,16 +120,28 @@ class StorefrontController extends Controller
 
     private function render(string $page, array $context = [], array $meta = [])
     {
-        $categories = Category::query()->with('parent')->where('is_active', true)->orderBy('display_order')->get();
-        $collections = Collection::query()->where('is_active', true)->orderBy('display_order')->get();
-        $products = $this->products()->latest()->get()->map(fn ($product) => $this->productData($product))->values();
+        $categories = Cache::remember('storefront:categories:v1', 300, fn () => Category::query()
+            ->with(['parent', 'children' => fn ($query) => $query->where('is_active', true)->orderBy('display_order')])
+            ->where('is_active', true)->orderBy('display_order')->orderBy('id')->get());
+        $collections = Cache::remember('storefront:collections:v1', 300, fn () => Collection::query()
+            ->where('is_active', true)->orderBy('display_order')->get());
+        $catalogFilters = array_filter([
+            'category' => $context['catalogCategory'] ?? null,
+            'collection' => $context['catalogCollection'] ?? null,
+            'q' => $page === 'search' ? ($context['query'] ?? '') : null,
+        ]);
+        $catalogPages = ['home', 'shop', 'search', 'category', 'collection'];
+        $batchSize = $this->catalogBatchSize();
+        $catalogPage = in_array($page, $catalogPages, true) ? $this->catalogQuery($catalogFilters)->paginate($batchSize) : null;
+        $products = $catalogPage ? $catalogPage->getCollection()->map(fn ($product) => $this->productData($product, false))->values() : collect();
         $categoryData = $categories->map(fn ($category) => $this->categoryData($category))->values();
         $sliderType = StoreSettings::get('slider_content_type', 'categories');
         $sliderRandom = (bool) StoreSettings::get('slider_random', false);
         if ($sliderType === 'products') {
+            $selectedIds = collect(StoreSettings::get('slider_product_ids', []))->map(fn ($id) => (int) $id)->filter();
             $selectedProducts = $sliderRandom
                 ? $products->shuffle()->take(12)->values()
-                : collect(StoreSettings::get('slider_product_ids', []))->map(fn ($id) => $products->firstWhere('id', (int) $id))->filter()->values();
+                : $this->products()->whereKey($selectedIds)->get()->sortBy(fn ($product) => $selectedIds->search($product->id))->map(fn ($product) => $this->productData($product, false))->values();
             $sliderItems = $selectedProducts->flatMap(function ($product) {
                 if (count($product['variants'] ?? []) === 0) {
                     return [['id' => $product['id'], 'product_id' => $product['id'], 'name' => $product['name'], 'image' => $product['images'][0] ?? null, 'url' => route('product.show', $product['slug']), 'type' => 'product']];
@@ -161,12 +196,18 @@ class StorefrontController extends Controller
                 'advance_payment_discount' => (float) StoreSettings::get('advance_payment_discount', 0),
                 'mobile_product_columns' => (int) StoreSettings::get('mobile_product_columns', 1),
                 'catalog_display_mode' => StoreSettings::get('catalog_display_mode', 'load_more'),
+                'catalog_batch_size' => $batchSize,
                 'coupon' => ['code' => 'TBRAND500', 'amount' => 500],
             ],
             'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),
-            'products' => $context['products'] ?? $products, 'allProducts' => $products,
+            'products' => $products, 'allProducts' => $products,
+            'catalogEndpoint' => route('catalog.products'),
+            'catalogMeta' => ['current_page' => $catalogPage?->currentPage() ?? 1, 'last_page' => $catalogPage?->lastPage() ?? 1, 'per_page' => $batchSize, 'total' => $catalogPage?->total() ?? 0],
             'featuredProducts' => $products->where('featured', true)->values(), 'bestSellers' => $products->sortByDesc('reviews')->take(8)->values(), 'newArrivals' => $products->take(8)->values(),
-            'categoryPromotions' => $categoryData, 'paymentAccounts' => PaymentAccount::query()->where('is_active', true)->orderBy('display_order')->get(), 'shippingMethods' => ShippingMethod::query()->where('is_active', true)->get(), 'pageContext' => $context,
+            'categoryPromotions' => $categoryData,
+            'paymentAccounts' => in_array($page, ['checkout', 'cart'], true) ? PaymentAccount::query()->where('is_active', true)->orderBy('display_order')->get() : [],
+            'shippingMethods' => in_array($page, ['checkout', 'cart'], true) ? ShippingMethod::query()->where('is_active', true)->get() : [],
+            'pageContext' => $context,
             'sliderItems' => $sliderItems,
         ];
         $storeName = StoreSettings::get('store_name', 'TBrand');
@@ -178,17 +219,63 @@ class StorefrontController extends Controller
     }
 
     private function products() { return Product::query()->with($this->productRelations())->where('status', 'published'); }
-    private function productRelations(): array { return ['category', 'media', 'variants.optionValues.option', 'collections']; }
-
-    private function productData(Product $product): array
+    private function productRelations(): array
     {
-        $variants = $product->variants->where('is_enabled', true)->map(function ($variant) {
+        return [
+            'category:id,slug,name',
+            'media:id,product_id,path,position,is_primary',
+            'variants' => fn ($query) => $query->select(['id', 'product_id', 'name', 'sku', 'image', 'images', 'regular_price', 'sale_price', 'stock', 'is_enabled']),
+            'variants.optionValues' => fn ($query) => $query->select(['product_option_values.id', 'product_option_id', 'value', 'slug', 'swatch']),
+            'variants.optionValues.option:id,slug',
+            'collections:id,slug,name',
+        ];
+    }
+
+    private function catalogQuery(array $filters = []): Builder
+    {
+        $query = $this->products()->select([
+            'id', 'category_id', 'name', 'slug', 'sku', 'description', 'regular_price', 'sale_price',
+            'stock', 'low_stock_threshold', 'tags', 'product_type', 'color', 'swatch', 'size',
+            'is_featured', 'published_at', 'created_at',
+        ]);
+        if (! empty($filters['slugs'])) $query->whereIn('slug', $filters['slugs']);
+        if (! empty($filters['q'])) {
+            $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $filters['q']).'%';
+            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('sku', 'like', $term)->orWhere('tags', 'like', $term));
+        }
+        $categories = array_values(array_filter(array_merge((array) ($filters['categories'] ?? []), (array) ($filters['category'] ?? []))));
+        $collections = array_values(array_filter(array_merge((array) ($filters['collections'] ?? []), (array) ($filters['collection'] ?? []))));
+        if ($categories) $query->whereHas('category', fn ($q) => $q->whereIn('slug', $categories));
+        if ($collections) $query->whereHas('collections', fn ($q) => $q->whereIn('slug', $collections));
+        if (! empty($filters['colors'])) $query->whereHas('variants.optionValues', fn ($q) => $q->whereIn('value', $filters['colors']));
+        if (! empty($filters['sizes'])) $query->whereHas('variants.optionValues', fn ($q) => $q->whereIn('value', $filters['sizes']));
+        if (isset($filters['min'])) $query->where(fn ($q) => $q->where('sale_price', '>=', $filters['min'])->orWhere(fn ($q) => $q->whereNull('sale_price')->where('regular_price', '>=', $filters['min'])));
+        if (isset($filters['max'])) $query->where(fn ($q) => $q->where('sale_price', '<=', $filters['max'])->orWhere(fn ($q) => $q->whereNull('sale_price')->where('regular_price', '<=', $filters['max'])));
+        if (! empty($filters['available'])) $query->where(fn ($q) => $q->where('stock', '>', 0)->orWhereHas('variants', fn ($v) => $v->where('is_enabled', true)->where('stock', '>', 0)));
+        if (! empty($filters['discounted'])) $query->whereNotNull('sale_price')->whereColumn('sale_price', '<', 'regular_price');
+        return match ($filters['sort'] ?? 'newest') {
+            'price-low' => $query->orderByRaw('COALESCE(sale_price, regular_price) asc'),
+            'price-high' => $query->orderByRaw('COALESCE(sale_price, regular_price) desc'),
+            'discount' => $query->orderByRaw('(regular_price - COALESCE(sale_price, regular_price)) desc'),
+            'random' => $query->orderByRaw("CRC32(CONCAT(id, 'tbrand'))"),
+            default => $query->latest('published_at')->latest('id'),
+        };
+    }
+
+    private function catalogBatchSize(): int
+    {
+        return max(1, min(48, (int) StoreSettings::get('catalog_batch_size', 24)));
+    }
+
+    private function productData(Product $product, bool $full = true): array
+    {
+        $variants = $product->variants->where('is_enabled', true)->map(function ($variant) use ($full) {
             $colour = $variant->optionValues->firstWhere('option.slug', 'colour');
             $size = $variant->optionValues->firstWhere('option.slug', 'size');
-            $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->map(fn ($image) => $this->assetUrl($image))->values();
+            $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->when(! $full, fn ($items) => $items->take(2))->map(fn ($image) => $this->assetUrl($image, $full ? 1600 : 900))->values();
             return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price !== null && $variant->sale_price < $variant->regular_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images];
         })->values();
-        $images = collect($product->media->map(fn ($media) => $this->assetUrl($media->path))->filter()->all())
+        $images = collect($product->media->when(! $full, fn ($items) => $items->take(2))->map(fn ($media) => $this->assetUrl($media->path, $full ? 1600 : 900))->filter()->all())
             ->merge($variants->flatMap(fn ($variant) => $variant['images'])->filter()->all())
             ->unique()
             ->values();
@@ -204,15 +291,46 @@ class StorefrontController extends Controller
             $swatches = [$product->color => $product->swatch ?: '#777777'];
         }
         if ($product->product_type === 'single' && $product->size) $sizes = collect([$product->size]);
-        return ['id' => $product->id, 'slug' => $product->slug, 'name' => $product->name, 'category' => $product->category?->slug, 'subcategory' => $product->category?->name, 'fabric' => collect($product->tags)->first() ?: 'Premium', 'price' => $price, 'original_price' => $originalPrice, 'badge' => $product->is_featured ? 'Featured' : null, 'rating' => 5, 'reviews' => 0, 'stock' => $product->stock > $product->low_stock_threshold ? 'In stock' : ($product->stock > 0 ? 'Low stock' : 'Out of stock'), 'stock_quantity' => $product->stock, 'sku' => $product->sku, 'colors' => $colors, 'colorSwatches' => $swatches, 'sizes' => $sizes, 'variants' => $variants, 'collections' => $product->collections->pluck('slug')->values(), 'featured' => $product->is_featured, 'images' => $images, 'short_description' => str(preg_replace('/<[^>]+>/', ' ', $product->description ?? ''))->squish()->limit(150)->toString(), 'description' => $product->description, 'care' => $product->shipping_information ?: 'Follow the care instructions on the product label.'];
+        $data = ['id' => $product->id, 'slug' => $product->slug, 'name' => $product->name, 'category' => $product->category?->slug, 'subcategory' => $product->category?->name, 'fabric' => collect($product->tags)->first() ?: 'Premium', 'price' => $price, 'original_price' => $originalPrice, 'rating' => 5, 'reviews' => 0, 'stock' => $product->stock > $product->low_stock_threshold ? 'In stock' : ($product->stock > 0 ? 'Low stock' : 'Out of stock'), 'stock_quantity' => $product->stock, 'sku' => $product->sku, 'colors' => $colors, 'colorSwatches' => $swatches, 'sizes' => $sizes, 'variants' => $variants, 'collections' => $product->collections->pluck('slug')->values(), 'featured' => $product->is_featured, 'images' => $images, 'short_description' => str(preg_replace('/<[^>]+>/', ' ', $product->description ?? ''))->squish()->limit(150)->toString()];
+        if ($full) $data += ['description' => $product->description, 'care' => $product->shipping_information ?: 'Follow the care instructions on the product label.'];
+        return $data;
     }
 
     private function categoryData(Category $category): array
     {
         $fallback = 'assets/catalog/category-accessories.webp';
-        return ['id' => $category->id, 'slug' => $category->slug, 'name' => $category->name, 'group' => $category->group_name ?: ($category->parent?->name ?: 'Shop'), 'description' => HtmlSanitizer::clean($category->description) ?: '', 'image' => $this->assetUrl($category->main_image ?: $fallback), 'hero' => $this->assetUrl($category->hero_image ?: $category->banner ?: $category->main_image ?: $fallback), 'banner' => $this->assetUrl($category->banner ?: $category->hero_image ?: $category->main_image ?: $fallback), 'featured' => $category->is_featured, 'sections' => $category->children()->where('is_active', true)->pluck('name')->values(), 'url' => route('category.show', $category->slug)];
+        return ['id' => $category->id, 'slug' => $category->slug, 'name' => $category->name, 'group' => $category->group_name ?: ($category->parent?->name ?: 'Shop'), 'description' => HtmlSanitizer::clean($category->description) ?: '', 'image' => $this->assetUrl($category->main_image ?: $fallback, 700), 'hero' => $this->assetUrl($category->hero_image ?: $category->banner ?: $category->main_image ?: $fallback, 1920), 'banner' => $this->assetUrl($category->banner ?: $category->hero_image ?: $category->main_image ?: $fallback, 1600), 'featured' => $category->is_featured, 'sections' => $category->children->pluck('name')->values(), 'url' => route('category.show', $category->slug)];
     }
 
-    private function collectionData(Collection $collection): array { return ['slug' => $collection->slug, 'name' => $collection->name, 'description' => $collection->description ?: '', 'image' => $this->assetUrl($collection->image ?: 'assets/catalog/banner-accessories.webp')]; }
-    private function assetUrl(?string $path): ?string { return ! $path ? null : (str_starts_with($path, 'http') ? $path : asset(ltrim($path, '/'))); }
+    private function collectionData(Collection $collection): array { return ['slug' => $collection->slug, 'name' => $collection->name, 'description' => $collection->description ?: '', 'image' => $this->assetUrl($collection->image ?: 'assets/catalog/banner-accessories.webp', 1600)]; }
+
+    private function assetUrl(?string $path, int $maxWidth = 1600): ?string
+    {
+        if (! $path || str_starts_with($path, 'http')) return $path;
+        $relative = ltrim($path, '/');
+        if (str_ends_with(strtolower($relative), '.webp')) return asset($relative);
+        $source = public_path($relative);
+        if (! is_file($source) || ! extension_loaded('gd')) return asset($relative);
+        $targetRelative = preg_replace('/\.[^.]+$/', '-'.$maxWidth.'.webp', $relative);
+        $target = public_path($targetRelative);
+        if (is_file($target) && filemtime($target) >= filemtime($source)) return asset($targetRelative);
+        $info = @getimagesize($source);
+        $creator = match ($info['mime'] ?? '') { 'image/jpeg' => 'imagecreatefromjpeg', 'image/png' => 'imagecreatefrompng', default => null };
+        if (! $creator || ! function_exists($creator)) return asset($relative);
+        $image = @$creator($source);
+        if (! $image) return asset($relative);
+        $width = imagesx($image); $height = imagesy($image);
+        $newWidth = min($width, $maxWidth);
+        $newHeight = max(1, (int) round($height * ($newWidth / $width)));
+        $output = imagecreatetruecolor($newWidth, $newHeight);
+        imagealphablending($output, false); imagesavealpha($output, true);
+        $transparent = imagecolorallocatealpha($output, 0, 0, 0, 127);
+        imagefill($output, 0, 0, $transparent);
+        imagecopyresampled($output, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+        if (! is_dir(dirname($target))) @mkdir(dirname($target), 0775, true);
+        @imagewebp($output, $target, 82);
+        imagedestroy($output);
+        imagedestroy($image);
+        return asset(is_file($target) ? $targetRelative : $relative);
+    }
 }

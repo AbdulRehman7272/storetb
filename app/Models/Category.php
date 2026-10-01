@@ -3,9 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class Category extends Model
 {
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::forget('storefront:categories:v1'));
+        static::deleted(fn () => Cache::forget('storefront:categories:v1'));
+    }
     protected $guarded = [];
 
     protected function casts(): array

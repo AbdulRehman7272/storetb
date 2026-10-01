@@ -1,6 +1,6 @@
 import { computed, reactive, watch } from 'vue';
 
-const data = window.TBRAND || {};
+const data = reactive(window.TBRAND || {});
 
 function makeUrl(path = '/') {
     if (!path) return data.baseUrl || '/';
@@ -31,6 +31,19 @@ function normalizeAssetUrls(value) {
 }
 
 normalizeAssetUrls(data);
+
+let savedCart = [];
+try { savedCart = JSON.parse(localStorage.getItem('tbrand_cart') || '[]') || []; } catch { savedCart = []; }
+const savedCartSlugs = [...new Set(savedCart.map(item => item.slug).filter(Boolean))];
+const missingCartSlugs = savedCartSlugs.filter(slug => !(data.allProducts || []).some(product => product.slug === slug));
+if (missingCartSlugs.length && data.catalogEndpoint) {
+    const params = new URLSearchParams();
+    missingCartSlugs.forEach(slug => params.append('slugs[]', slug));
+    fetch(`${data.catalogEndpoint}?${params}`, { headers: { Accept: 'application/json' } })
+        .then(response => response.ok ? response.json() : null)
+        .then(payload => { if (payload?.data) data.allProducts.push(...payload.data); })
+        .catch(() => {});
+}
 
 const read = (key, fallback) => {
     try {

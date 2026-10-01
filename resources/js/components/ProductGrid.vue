@@ -4,7 +4,7 @@
             <div>
                 <p class="eyebrow">{{ eyebrow }}</p>
                 <component :is="asPage ? 'h1' : 'h2'" :id="headingId">{{ title }}</component>
-                <p class="muted">{{ filtered.length }} products found</p>
+                <p class="muted">{{ resultTotal }} products found</p>
             </div>
             <div class="shop-tools">
                 <label class="search-field">
@@ -100,15 +100,15 @@
 
             <div>
                 <div v-if="filtered.length" class="product-grid" :class="[`product-grid--${display}`, `mobile-cols-${mobileColumns}`]" :style="{ '--mobile-product-columns': mobileColumns }">
-                    <ProductCard v-for="product in visible" :key="product.cardKey || product.slug" :product="product" :display="display" @quick-view="openQuickView" />
+                    <ProductCard v-for="(product, productIndex) in visible" :key="product.cardKey || product.slug" :product="product" :display="display" :priority="productIndex === 0" @quick-view="openQuickView" />
                 </div>
                 <div v-else class="empty-state">
                     <strong>No matching products</strong>
                     <p>Try removing a filter or searching a broader product name.</p>
                     <button class="button button--gold" type="button" @click="clearFilters">Clear filters</button>
                 </div>
-                <div v-if="visible.length < filtered.length" class="load-more">
-                    <button class="button button--ghost" type="button" @click="limit += 8">Load more</button>
+                <div v-if="hasMore" class="load-more">
+                    <button class="button button--ghost" type="button" :disabled="loading" @click="loadMore">{{ loading ? 'Loading...' : 'Load more' }}</button>
                 </div>
             </div>
         </div>
@@ -157,6 +157,7 @@ const props = defineProps({
     eyebrow: { type: String, default: 'Curated Shopping' },
     initialSearch: { type: String, default: '' },
     categorySlug: { type: String, default: '' },
+    collectionSlug: { type: String, default: '' },
     asPage: { type: Boolean, default: false },
     expandVariants: { type: Boolean, default: false },
 });
@@ -171,7 +172,9 @@ const quickImage = ref('');
 const display = ref('grid');
 const sort = ref('random');
 const sortOpen = ref(false);
-const limit = ref(8);
+const catalogProducts = ref([...(props.products || [])]);
+const catalogMeta = ref({ ...(data.catalogMeta || { current_page: 1, last_page: 1, total: catalogProducts.value.length }) });
+const loading = ref(false);
 const headingId = `shop-${Math.random().toString(36).slice(2)}`;
 const sortOptions = [
     { value: 'random', label: 'Shuffled' },
@@ -184,7 +187,10 @@ const sortOptions = [
 const closeSortOutside = (event) => {
     if (sortOpen.value && !event.target.closest('.sort-menu')) sortOpen.value = false;
 };
-onMounted(() => document.addEventListener('pointerdown', closeSortOutside));
+onMounted(() => {
+    document.addEventListener('pointerdown', closeSortOutside);
+    if (displayAllProducts && catalogMeta.value.current_page < catalogMeta.value.last_page) loadAll();
+});
 onBeforeUnmount(() => { document.removeEventListener('pointerdown', closeSortOutside); document.body.classList.remove('store-filter-open'); });
 watch(drawer, open => document.body.classList.toggle('store-filter-open', open));
 const shuffleRanks = new Map();
@@ -211,7 +217,7 @@ const filters = reactive({
 
 const categories = computed(() => data.categories || []);
 const source = computed(() => {
-    const products = props.products.length ? props.products : data.allProducts || [];
+    const products = catalogProducts.value;
 
     if (!props.expandVariants) return products;
 
@@ -263,7 +269,9 @@ const filtered = computed(() => {
     });
 });
 
-const visible = computed(() => displayAllProducts ? filtered.value : filtered.value.slice(0, limit.value));
+const visible = computed(() => filtered.value);
+const resultTotal = computed(() => catalogMeta.value.total ?? filtered.value.length);
+const hasMore = computed(() => !displayAllProducts && catalogMeta.value.current_page < catalogMeta.value.last_page);
 const sortLabel = computed(() => sortOptions.find((option) => option.value === sort.value)?.label || 'Shuffled');
 const chips = computed(() => [
     ...filters.categories.map((value) => ({ key: 'categories', value, label: categoryName(value) })),
@@ -311,6 +319,50 @@ function clearFilters() {
 function setSort(value) {
     sort.value = value;
     sortOpen.value = false;
+}
+
+let filterTimer;
+watch(() => [filters.search, [...filters.categories], [...filters.colors], [...filters.sizes], [...filters.collections], filters.min, filters.max, filters.available, filters.discounted, sort.value], () => {
+    window.clearTimeout(filterTimer);
+    filterTimer = window.setTimeout(() => fetchCatalog(1, false), 250);
+}, { deep: true });
+
+function catalogParams(page) {
+    const params = new URLSearchParams({ page: String(page), sort: sort.value === 'popularity' ? 'newest' : sort.value });
+    const selectedCategories = props.categorySlug ? [props.categorySlug] : filters.categories;
+    selectedCategories.forEach(value => params.append('categories[]', value));
+    if (props.collectionSlug) params.set('collection', props.collectionSlug);
+    if (filters.search.trim()) params.set('q', filters.search.trim());
+    filters.colors.forEach(value => params.append('colors[]', value));
+    filters.sizes.forEach(value => params.append('sizes[]', value));
+    if (!props.collectionSlug) filters.collections.forEach(value => params.append('collections[]', value));
+    if (Number(filters.min) > 0) params.set('min', String(filters.min));
+    if (Number(filters.max) > 0) params.set('max', String(filters.max));
+    if (filters.available) params.set('available', '1');
+    if (filters.discounted) params.set('discounted', '1');
+    return params;
+}
+
+async function fetchCatalog(page, append) {
+    if (loading.value || !data.catalogEndpoint) return;
+    loading.value = true;
+    try {
+        const response = await fetch(`${data.catalogEndpoint}?${catalogParams(page)}`, { headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('Catalog request failed');
+        const payload = await response.json();
+        catalogProducts.value = append ? [...catalogProducts.value, ...payload.data] : payload.data;
+        catalogMeta.value = payload.meta;
+    } finally {
+        loading.value = false;
+    }
+}
+
+async function loadMore() {
+    await fetchCatalog(catalogMeta.value.current_page + 1, true);
+}
+
+async function loadAll() {
+    while (catalogMeta.value.current_page < catalogMeta.value.last_page) await loadMore();
 }
 
 function openQuickView(product) {

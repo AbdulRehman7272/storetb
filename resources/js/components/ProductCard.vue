@@ -7,7 +7,8 @@
                 :alt="product.name"
                 width="450"
                 height="563"
-                loading="eager"
+                :loading="priority ? 'eager' : 'lazy'"
+                :fetchpriority="priority ? 'high' : 'auto'"
                 decoding="async"
             >
             <div v-if="cardImages.length > 1" class="card-carousel" aria-label="Product variant carousel">
@@ -46,6 +47,7 @@ import { useCommerce } from '../composables/useCommerce';
 const props = defineProps({
     product: { type: Object, required: true },
     display: { type: String, default: 'grid' },
+    priority: { type: Boolean, default: false },
 });
 
 defineEmits(['quick-view']);

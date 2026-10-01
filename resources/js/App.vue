@@ -37,9 +37,9 @@
         <main>
             <HomePage v-if="page === 'home'" />
             <CategoriesPage v-else-if="page === 'categories'" />
-            <CategoryPage v-else-if="page === 'category'" :category="context.category" :products="context.products" />
+            <CategoryPage v-else-if="page === 'category'" :category="context.category" :products="data.products" />
             <ProductGrid v-else-if="page === 'shop'" :products="data.allProducts" title="Shop All Products" eyebrow="TBrand Store" as-page />
-            <CollectionPage v-else-if="page === 'collection'" :collection="context.collection" :products="context.products" />
+            <CollectionPage v-else-if="page === 'collection'" :collection="context.collection" :products="data.products" />
             <ProductGrid v-else-if="page === 'search'" :products="data.allProducts" title="Search Results" eyebrow="Find Your Piece" :initial-search="context.query || ''" as-page />
             <ProductDetail v-else-if="page === 'product'" :product="context.product" :related="context.related" />
             <CartPage v-else-if="page === 'cart'" />
@@ -152,12 +152,12 @@ const HomePage = defineComponent({
         </section>
         <TrustStrip />
         <section class="section-block"><div class="section-head"><div><p class="eyebrow">Shop by Category</p><h2>Main Shopping Categories</h2></div><a :href="$toUrl('/categories')">View all</a></div><div class="category-grid"><CategoryCard v-for="category in data.categories" :key="category.slug" :category="category" /></div></section>
-        <section class="promo-grid"><a v-for="collection in data.collections" :key="collection.slug" :href="$toUrl('/collection/' + collection.slug)" class="promo-card"><img :src="collection.image" :alt="collection.name"><span><small>Collection</small><strong>{{ collection.name }}</strong><em>{{ collection.description }}</em></span></a></section>
+        <section class="promo-grid"><a v-for="collection in data.collections" :key="collection.slug" :href="$toUrl('/collection/' + collection.slug)" class="promo-card"><img :src="collection.image" :alt="collection.name" loading="lazy" decoding="async"><span><small>Collection</small><strong>{{ collection.name }}</strong><em>{{ collection.description }}</em></span></a></section>
         <ProductShelf title="New Arrivals" eyebrow="Fresh Drops" :products="data.newArrivals" />
         <ProductShelf title="Best Sellers" eyebrow="Customer Favorites" :products="data.bestSellers" />
         <ProductShelf title="Trending Products" eyebrow="Popular Now" :products="data.featuredProducts" />
         <section class="newsletter"><div><p class="eyebrow">TBrand Updates</p><h2>Get new drops and private offers</h2></div><form @submit.prevent=""><label class="sr-only" for="newsletter">Email</label><input id="newsletter" type="email" placeholder="Email address"><button class="button button--gold">Subscribe</button></form></section>
-        <section class="social-gallery"><img v-for="product in data.allProducts.slice(0, 6)" :key="product.slug" :src="product.images[0]" :alt="product.name"></section>
+        <section class="social-gallery"><img v-for="product in data.allProducts.slice(0, 6)" :key="product.slug" :src="product.images[0]" :alt="product.name" loading="lazy" decoding="async"></section>
     `,
 });
 
@@ -240,7 +240,7 @@ const LatestStockSlider = defineComponent({
 
 const CategoryRibbon = defineComponent({
     setup() { return { items: data.sliderItems || [] }; },
-    template: `<section v-if="items.length" class="category-ribbon" aria-label="Explore store items"><div class="category-ribbon__track"><a v-for="item in items" :key="item.type + '-' + item.id" :href="item.url"><img :src="item.image" :alt="item.name"><span>{{ item.name }}</span></a></div></section>`,
+    template: `<section v-if="items.length" class="category-ribbon" aria-label="Explore store items"><div class="category-ribbon__track"><a v-for="item in items" :key="item.type + '-' + item.id" :href="item.url"><img :src="item.image" :alt="item.name" loading="lazy" decoding="async"><span>{{ item.name }}</span></a></div></section>`,
 });
 
 const CategoryPage = defineComponent({
@@ -249,7 +249,7 @@ const CategoryPage = defineComponent({
     template: `
         <section class="hero hero--category"><picture><img class="hero__image" :src="category.hero" :alt="category.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Category Storefront</p><h1>{{ category.name }}</h1><div v-if="category.description" class="category-hero-description rich-content" v-html="category.description"></div><div class="hero__actions"><a class="button button--gold" href="#listing">Shop now</a><a class="button button--ghost" :href="$toUrl('/categories')">All categories</a></div></div></section>
         <CategoryRibbon />
-        <ProductGrid id="listing" :products="products" title="Products" :eyebrow="category.name" expand-variants />
+        <ProductGrid id="listing" :products="products" title="Products" :eyebrow="category.name" :category-slug="category.slug" expand-variants />
         <section v-if="category.sections.length" class="section-block category-sections"><div class="section-head section-head--compact"><div><p class="eyebrow">Browse Sections</p><h2>{{ category.name }}</h2></div></div><div class="chips"><a href="#listing">All Products</a><a v-for="section in category.sections" :key="section" href="#listing">{{ section }}</a></div></section>
         <LatestStockSlider :category="category" :products="products" />
         <TrustStrip />
@@ -259,7 +259,7 @@ const CategoryPage = defineComponent({
 const CollectionPage = defineComponent({
     components: { ProductGrid },
     props: { collection: Object, products: Array },
-    template: `<section class="hero hero--category"><picture><img class="hero__image" :src="collection.image" :alt="collection.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Collection</p><h1>{{ collection.name }}</h1><p>{{ collection.description }}</p></div></section><ProductGrid :products="products" :title="collection.name" eyebrow="Collection Products" />`,
+    template: `<section class="hero hero--category"><picture><img class="hero__image" :src="collection.image" :alt="collection.name" fetchpriority="high"></picture><div class="hero__content"><p class="eyebrow">Collection</p><h1>{{ collection.name }}</h1><p>{{ collection.description }}</p></div></section><ProductGrid :products="products" :title="collection.name" :collection-slug="collection.slug" eyebrow="Collection Products" />`,
 });
 
 const CartDrawer = defineComponent({

@@ -45,6 +45,7 @@ class SettingsController extends Controller
             'homepage_category_slug' => ['nullable', 'string', 'exists:categories,slug'],
             'mobile_product_columns' => ['required', 'integer', 'in:1,2,3'],
             'catalog_display_mode' => ['required', 'in:load_more,all'],
+            'catalog_batch_size' => ['required', 'integer', 'min:1', 'max:48'],
             'slider_content_type' => ['required', 'in:categories,products'],
             'slider_random' => ['nullable', 'boolean'],
             'slider_category_ids' => ['nullable', 'array'],
@@ -72,9 +73,9 @@ class SettingsController extends Controller
         $values['advance_payment_free_shipping'] = $request->boolean('advance_payment_free_shipping');
         $values['slider_category_ids'] = $values['slider_category_ids'] ?? [];
         $values['slider_product_ids'] = $values['slider_product_ids'] ?? [];
-        $groups = ['store_name' => 'branding', 'whatsapp' => 'contact', 'general_email' => 'contact', 'support_email' => 'contact', 'address' => 'contact', 'show_footer_contact' => 'contact', 'seo_title' => 'seo', 'seo_description' => 'seo', 'primary_color' => 'branding', 'accent_color' => 'branding', 'page_text_color' => 'branding', 'button_text_color' => 'branding', 'homepage_hero_slogan' => 'homepage', 'homepage_hero_title' => 'homepage', 'homepage_hero_description' => 'homepage', 'show_super_store' => 'homepage', 'homepage_category_slug' => 'homepage', 'mobile_product_columns' => 'catalog', 'catalog_display_mode' => 'catalog', 'slider_content_type' => 'slider', 'slider_random' => 'slider', 'slider_category_ids' => 'slider', 'slider_product_ids' => 'slider', 'currency' => 'store', 'shipping_charge' => 'shipping', 'free_shipping_threshold' => 'shipping', 'advance_payment_free_shipping' => 'shipping', 'advance_payment_discount' => 'shipping', 'footer_credit' => 'branding', 'footer_credit_url' => 'branding'];
+        $groups = ['store_name' => 'branding', 'whatsapp' => 'contact', 'general_email' => 'contact', 'support_email' => 'contact', 'address' => 'contact', 'show_footer_contact' => 'contact', 'seo_title' => 'seo', 'seo_description' => 'seo', 'primary_color' => 'branding', 'accent_color' => 'branding', 'page_text_color' => 'branding', 'button_text_color' => 'branding', 'homepage_hero_slogan' => 'homepage', 'homepage_hero_title' => 'homepage', 'homepage_hero_description' => 'homepage', 'show_super_store' => 'homepage', 'homepage_category_slug' => 'homepage', 'mobile_product_columns' => 'catalog', 'catalog_display_mode' => 'catalog', 'catalog_batch_size' => 'catalog', 'slider_content_type' => 'slider', 'slider_random' => 'slider', 'slider_category_ids' => 'slider', 'slider_product_ids' => 'slider', 'currency' => 'store', 'shipping_charge' => 'shipping', 'free_shipping_threshold' => 'shipping', 'advance_payment_free_shipping' => 'shipping', 'advance_payment_discount' => 'shipping', 'footer_credit' => 'branding', 'footer_credit_url' => 'branding'];
         foreach ($groups as $key => $group) {
-            $type = in_array($key, ['show_footer_contact', 'show_super_store', 'slider_random', 'advance_payment_free_shipping']) ? 'boolean' : (in_array($key, ['slider_category_ids', 'slider_product_ids']) ? 'json' : (in_array($key, ['shipping_charge', 'free_shipping_threshold', 'advance_payment_discount', 'mobile_product_columns']) ? 'number' : 'text'));
+            $type = in_array($key, ['show_footer_contact', 'show_super_store', 'slider_random', 'advance_payment_free_shipping']) ? 'boolean' : (in_array($key, ['slider_category_ids', 'slider_product_ids']) ? 'json' : (in_array($key, ['shipping_charge', 'free_shipping_threshold', 'advance_payment_discount', 'mobile_product_columns', 'catalog_batch_size']) ? 'number' : 'text'));
             StoreSettings::put($key, $values[$key] ?? null, $group, $type);
         }
 

@@ -83,6 +83,7 @@ class DatabaseSeeder extends Seeder
             ['slider_content_type', 'categories', 'slider'],
             ['mobile_product_columns', 1, 'catalog'],
             ['catalog_display_mode', 'load_more', 'catalog'],
+            ['catalog_batch_size', 24, 'catalog'],
             ['slider_random', false, 'slider'],
             ['slider_category_ids', [], 'slider'],
             ['slider_product_ids', [], 'slider'],

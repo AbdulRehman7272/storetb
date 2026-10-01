@@ -61,7 +61,7 @@
     </div></section>
 
     <section class="panel settings-section"><div class="settings-heading"><div><h2>Product Loading</h2><p>Choose whether catalog pages show products in batches or display every matching item.</p></div></div><div class="mobile-column-options" role="radiogroup" aria-label="Catalog product loading">
-        <label><input type="radio" name="catalog_display_mode" value="load_more" @checked(old('catalog_display_mode',$settings['catalog_display_mode'] ?? 'load_more') === 'load_more')><span><strong>Load more</strong><small>Show products in batches of eight.</small></span></label>
+        <label><input type="radio" name="catalog_display_mode" value="load_more" @checked(old('catalog_display_mode',$settings['catalog_display_mode'] ?? 'load_more') === 'load_more')><span><strong>Load more</strong><small>Show the selected number first and append the same number each time.</small><span class="catalog-batch-field"><b>Products per batch</b><input type="number" name="catalog_batch_size" min="1" max="48" step="1" value="{{ old('catalog_batch_size',$settings['catalog_batch_size'] ?? 24) }}" required></span></span></label>
         <label><input type="radio" name="catalog_display_mode" value="all" @checked(old('catalog_display_mode',$settings['catalog_display_mode'] ?? 'load_more') === 'all')><span><strong>Show all</strong><small>Display every matching product immediately.</small></span></label>
     </div></section>
 

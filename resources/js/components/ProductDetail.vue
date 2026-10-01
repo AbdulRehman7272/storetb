@@ -24,7 +24,7 @@
                             type="button"
                             @click="imageIndex = item.index"
                         >
-                            <img :src="item.image" :alt="`${product.name} image ${item.index + 1}`">
+                            <img :src="item.image" :alt="`${product.name} image ${item.index + 1}`" loading="lazy" decoding="async">
                         </button>
                     </div>
                     <button class="icon-button" type="button" aria-label="Next product image" @click="moveImage(1)">›</button>
@@ -113,7 +113,7 @@
             <div class="section-head"><div><p class="eyebrow">Pair It Well</p><h2>Frequently Bought Together</h2></div></div>
             <div class="mini-bundle">
                 <a v-for="item in recommendations" :key="item.slug" :href="toUrl('/product/' + item.slug)">
-                    <img :src="item.images[0]" :alt="item.name">
+                    <img :src="item.images[0]" :alt="item.name" loading="lazy" decoding="async">
                     <span>{{ item.name }}</span>
                 </a>
             </div>
