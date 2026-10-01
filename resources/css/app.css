@@ -803,6 +803,11 @@ details p, details .form-grid, details .radio-card, details label { margin: 0 16
 .mini-bundle a { display: grid; flex: 0 1 150px; width: 150px; min-width: 0; gap: 8px; color: inherit; text-decoration: none; }
 .mini-bundle img { width: 150px; max-width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm); }
 .mini-bundle span { line-height: 1.25; }
+@media (max-width: 700px) {
+    .mini-bundle { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; padding:10px; }
+    .mini-bundle a { width:100%; max-width:none; }
+    .mini-bundle img { width:100%; }
+}
 .review-grid { grid-template-columns: repeat(3, 1fr); }
 .review-grid article { padding: 18px; }
 .viewer { width: min(920px, 92vw); }
