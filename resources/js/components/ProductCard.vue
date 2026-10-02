@@ -12,11 +12,11 @@
                 decoding="async"
             >
             <div v-if="cardImages.length > 1" class="card-carousel" aria-label="Product variant carousel">
-                <button type="button" class="icon-button" aria-label="Previous product image" @click.prevent="move(-1)"><i data-lucide="arrow-left" aria-hidden="true"></i></button>
+                <button type="button" class="icon-button" aria-label="Previous product image" @click.prevent="move(-1)"><span aria-hidden="true">←</span></button>
                 <div class="dots" aria-hidden="true">
                     <span v-for="(_, dot) in cardImages" :key="dot" :class="{ active: dot === index }"></span>
                 </div>
-                <button type="button" class="icon-button" aria-label="Next product image" @click.prevent="move(1)"><i data-lucide="arrow-right" aria-hidden="true"></i></button>
+                <button type="button" class="icon-button" aria-label="Next product image" @click.prevent="move(1)"><span aria-hidden="true">→</span></button>
             </div>
         </a>
         <div class="product-card__body">

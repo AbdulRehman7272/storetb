@@ -203,7 +203,6 @@ onMounted(() => {
 });
 
 function add() {
-    if (selectedVariant.value && selectedVariant.value.stock_quantity < quantity.value) return;
     addToCart(props.product, { color: selectedColor.value, size: selectedSize.value, quantity: quantity.value, variant: selectedVariant.value });
 }
 

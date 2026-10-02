@@ -117,9 +117,17 @@ export function useCommerce() {
 
     const cartCount = computed(() => state.cart.reduce((sum, item) => sum + item.quantity, 0));
     const cartItems = computed(() => state.cart.map((item) => {
-        const product = productBySlug(item.slug);
+        const product = productBySlug(item.slug) || item.product_snapshot || {
+            id: item.product_id,
+            slug: item.slug,
+            name: item.product_name || 'Product',
+            price: Number(item.price || 0),
+            images: item.image ? [item.image] : [],
+            variants: [],
+        };
         const variant = product?.variants?.find((entry) => entry.id === item.variant_id)
-            || product?.variants?.find((entry) => entry.color === item.color && (!entry.size || entry.size === item.size));
+            || product?.variants?.find((entry) => entry.color === item.color && (!entry.size || entry.size === item.size))
+            || item.variant_snapshot;
         return {
             ...item,
             product,
@@ -127,7 +135,7 @@ export function useCommerce() {
             image: variant?.images?.[0] || variant?.image || product?.images?.[0],
             price: variant?.price ?? item.price ?? product?.price,
         };
-    }).filter((item) => item.product));
+    }));
     const subtotal = computed(() => cartItems.value.reduce((sum, item) => sum + (item.price ?? item.product.price) * item.quantity, 0));
     const discount = computed(() => state.coupon?.amount || 0);
     const advanceDiscount = computed(() => state.paymentMethod === 'manual'
@@ -148,7 +156,14 @@ export function useCommerce() {
         if (existing) {
             existing.quantity += variant.quantity || 1;
         } else {
-            state.cart.push({ key, slug: product.slug, product_id: product.id, variant_id: selected?.id || null, color, size, price: selected?.price ?? product.price, quantity: variant.quantity || 1 });
+            const image = selected?.images?.[0] || selected?.image || product.images?.[0] || null;
+            state.cart.push({
+                key, slug: product.slug, product_id: product.id, variant_id: selected?.id || null,
+                color, size, price: selected?.price ?? product.price, quantity: variant.quantity || 1, image,
+                product_name: product.name,
+                product_snapshot: { id: product.id, slug: product.slug, name: product.name, price: product.price, images: image ? [image] : [], variants: [] },
+                variant_snapshot: selected ? { id: selected.id, color: selected.color, size: selected.size, price: selected.price, images: selected.images || (image ? [image] : []) } : null,
+            });
         }
 
         toast(`${product.name} added to cart`);

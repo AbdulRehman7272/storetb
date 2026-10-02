@@ -951,7 +951,8 @@ th { color: var(--color-gold-2); }
     padding: 22px;
 }
 .modal img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius-sm); }
-.modal__close { position: absolute; top: 12px; right: 12px; z-index: 2; }
+.modal__close { position:absolute; top:12px; right:12px; z-index:5; border-color:var(--color-gold); background:var(--color-gold); color:#080808; opacity:1; font-size:24px; font-weight:900; line-height:1; box-shadow:0 3px 14px rgba(0,0,0,.55); }
+.modal__close:hover,.modal__close:focus-visible { background:#f0c968; color:#080808; }
 .modal__actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .modal--search { grid-template-columns: 1fr; }
 .modal--search form input { min-width: min(480px, 100%); }
@@ -1087,6 +1088,7 @@ th { color: var(--color-gold-2); }
     .gallery__main { height:auto; min-height:0; aspect-ratio:4/5; }
     .payment-choice,.account-details dl { grid-template-columns:1fr; }
     .checkout-form .form-grid { grid-template-columns:1fr; }
+    .checkout-form form > .button + .button { margin-top:12px; }
     .product-content-grid { grid-template-columns:1fr; }
     .product-reviews-section { border-top:1px solid var(--color-line-soft); border-left:0; }
     .shop-layout__grid > div > .product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
