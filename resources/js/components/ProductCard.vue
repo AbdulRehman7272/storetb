@@ -22,7 +22,7 @@
         <div class="product-card__body">
             <div class="product-card__actions">
                 <button class="icon-button" type="button" :aria-label="wishlistLabel" :title="wishlistLabel" :class="{ selected: state.wishlist.includes(savedKey) }" @click="toggleWishlist(savedKey)">♡</button>
-                <button class="button button--ghost product-card__view" type="button" title="Open quick view" @click="$emit('quick-view', product)">View</button>
+                <button class="button button--ghost product-card__view" type="button" title="Open image gallery" @click="$emit('quick-view', product)">{{ imageCount }} {{ imageCount === 1 ? 'image' : 'images' }}</button>
             </div>
             <a class="product-card__title" :href="productUrl">{{ displayName }}</a>
             <div class="price-row">
@@ -80,6 +80,12 @@ const displayName = computed(() => props.product.variantColor ? `${props.product
 const productUrl = computed(() => `${toUrl('/product/' + props.product.slug)}${props.product.variantSku ? `?sku=${encodeURIComponent(props.product.variantSku)}` : ''}`);
 const savedKey = computed(() => props.product.variantSku ? `${props.product.slug}::${props.product.variantSku}` : props.product.slug);
 const wishlistLabel = computed(() => state.wishlist.includes(savedKey.value) ? 'Remove from wishlist' : 'Add to wishlist');
+const imageCount = computed(() => {
+    if (props.product.variantColor) {
+        return (props.product.variants || []).find((variant) => variant.color === props.product.variantColor)?.image_count || props.product.image_count || 1;
+    }
+    return props.product.image_count || 1;
+});
 
 function move(direction) {
     const total = cardImages.value.length || 1;

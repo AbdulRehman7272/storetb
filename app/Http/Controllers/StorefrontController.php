@@ -84,6 +84,15 @@ class StorefrontController extends Controller
         ])->header('Cache-Control', 'private, no-store, max-age=0');
     }
 
+    public function catalogProduct(string $slug)
+    {
+        $product = $this->products()->where('slug', $slug)->firstOrFail();
+
+        return response()->json([
+            'data' => $this->productData($product, true, 900),
+        ])->header('Cache-Control', 'private, no-store, max-age=0');
+    }
+
     public function simple(string $page)
     {
         $record = Page::query()->where('slug', $page)->where('is_published', true)->first();
@@ -203,6 +212,7 @@ class StorefrontController extends Controller
             'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),
             'allProducts' => $products,
             'catalogEndpoint' => route('catalog.products'),
+            'catalogDetailEndpoint' => url('/catalog/products'),
             'catalogMeta' => ['current_page' => $catalogPage?->currentPage() ?? 1, 'last_page' => $catalogPage?->lastPage() ?? 1, 'per_page' => $batchSize, 'total' => $catalogPage?->total() ?? 0],
             'categoryPromotions' => $categoryData,
             'paymentAccounts' => in_array($page, ['checkout', 'cart'], true) ? PaymentAccount::query()->where('is_active', true)->orderBy('display_order')->get() : [],
@@ -267,19 +277,21 @@ class StorefrontController extends Controller
         return max(1, min(48, (int) StoreSettings::get('catalog_batch_size', 24)));
     }
 
-    private function productData(Product $product, bool $full = true): array
+    private function productData(Product $product, bool $full = true, int $fullImageWidth = 1600): array
     {
-        $allVariants = $product->variants->where('is_enabled', true)->map(function ($variant) use ($full) {
+        $allVariants = $product->variants->where('is_enabled', true)->map(function ($variant) use ($full, $fullImageWidth) {
             $colour = $variant->optionValues->firstWhere('option.slug', 'colour');
             $size = $variant->optionValues->firstWhere('option.slug', 'size');
-            $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->when(! $full, fn ($items) => $items->take(1))->map(fn ($image) => $this->assetUrl($image, $full ? 1600 : 640))->values();
-            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price !== null && $variant->sale_price < $variant->regular_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images];
+            $sourceImages = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique();
+            $images = $sourceImages->when(! $full, fn ($items) => $items->take(1))->map(fn ($image) => $this->assetUrl($image, $full ? $fullImageWidth : 640))->values();
+            return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price !== null && $variant->sale_price < $variant->regular_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images, 'image_count' => $sourceImages->count()];
         })->values();
         $colors = $allVariants->pluck('color')->filter()->unique()->values();
         $sizes = $allVariants->pluck('size')->filter()->unique()->values();
         $swatches = $allVariants->filter(fn ($v) => $v['color'])->mapWithKeys(fn ($v) => [$v['color'] => $v['swatch']])->all();
         $variants = $full ? $allVariants : $allVariants->unique(fn ($variant) => $variant['color'] ?: $variant['id'])->values();
-        $images = collect($product->media->when(! $full, fn ($items) => $items->take(2))->map(fn ($media) => $this->assetUrl($media->path, $full ? 1600 : 640))->filter()->all())
+        $sourceImageCount = collect($product->media->pluck('path'))->merge($product->variants->flatMap(fn ($variant) => collect($variant->images ?: [])->prepend($variant->image)))->filter()->unique()->count();
+        $images = collect($product->media->when(! $full, fn ($items) => $items->take(2))->map(fn ($media) => $this->assetUrl($media->path, $full ? $fullImageWidth : 640))->filter()->all())
             ->when($full, fn ($items) => $items->merge($variants->flatMap(fn ($variant) => $variant['images'])->filter()->all()))
             ->unique()
             ->values();
@@ -293,7 +305,7 @@ class StorefrontController extends Controller
             $swatches = [$product->color => $product->swatch ?: '#777777'];
         }
         if ($product->product_type === 'single' && $product->size) $sizes = collect([$product->size]);
-        $data = ['id' => $product->id, 'slug' => $product->slug, 'name' => $product->name, 'category' => $product->category?->slug, 'subcategory' => $product->category?->name, 'fabric' => collect($product->tags)->first() ?: 'Premium', 'price' => $price, 'original_price' => $originalPrice, 'rating' => 5, 'reviews' => 0, 'stock' => $product->stock > $product->low_stock_threshold ? 'In stock' : ($product->stock > 0 ? 'Low stock' : 'Out of stock'), 'stock_quantity' => $product->stock, 'sku' => $product->sku, 'colors' => $colors, 'colorSwatches' => $swatches, 'sizes' => $sizes, 'variants' => $variants, 'collections' => $product->collections->pluck('slug')->values(), 'featured' => $product->is_featured, 'images' => $images, 'short_description' => str(preg_replace('/<[^>]+>/', ' ', $product->description ?? ''))->squish()->limit(150)->toString()];
+        $data = ['id' => $product->id, 'slug' => $product->slug, 'name' => $product->name, 'category' => $product->category?->slug, 'subcategory' => $product->category?->name, 'fabric' => collect($product->tags)->first() ?: 'Premium', 'price' => $price, 'original_price' => $originalPrice, 'rating' => 5, 'reviews' => 0, 'stock' => $product->stock > $product->low_stock_threshold ? 'In stock' : ($product->stock > 0 ? 'Low stock' : 'Out of stock'), 'stock_quantity' => $product->stock, 'sku' => $product->sku, 'colors' => $colors, 'colorSwatches' => $swatches, 'sizes' => $sizes, 'variants' => $variants, 'collections' => $product->collections->pluck('slug')->values(), 'featured' => $product->is_featured, 'images' => $images, 'image_count' => max(1, $sourceImageCount), 'short_description' => str(preg_replace('/<[^>]+>/', ' ', $product->description ?? ''))->squish()->limit(150)->toString()];
         if ($full) $data += ['description' => $product->description, 'care' => $product->shipping_information ?: 'Follow the care instructions on the product label.'];
         return $data;
     }

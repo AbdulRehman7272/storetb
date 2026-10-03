@@ -42,6 +42,7 @@ Route::get('/categories', [StorefrontController::class, 'categories'])->name('ca
 Route::get('/category/{slug}', [StorefrontController::class, 'category'])->name('category.show');
 Route::get('/shop', [StorefrontController::class, 'shop'])->name('shop');
 Route::get('/catalog/products', [StorefrontController::class, 'catalog'])->name('catalog.products');
+Route::get('/catalog/products/{slug}', [StorefrontController::class, 'catalogProduct'])->name('catalog.products.show');
 Route::get('/collection/{slug}', [StorefrontController::class, 'collection'])->name('collection.show');
 Route::get('/product/{slug}', [StorefrontController::class, 'product'])->name('product.show');
 Route::get('/search', [StorefrontController::class, 'search'])->name('search');

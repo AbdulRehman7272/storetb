@@ -115,7 +115,7 @@
 
         <div v-if="quickView" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Quick view">
             <div class="modal quick-view-modal">
-                <button class="icon-button modal__close" type="button" aria-label="Close quick view" @click="quickView = null">×</button>
+                <button class="icon-button modal__close" type="button" aria-label="Close quick view" @click="closeQuickView">×</button>
                 <div class="quick-view-gallery">
                     <img class="quick-view-gallery__main" :src="quickImage || quickImages[0]" :alt="quickView.name" width="900" height="1125">
                 </div>
@@ -127,7 +127,10 @@
                         </button>
                     </div>
                     <div class="quick-view-thumbs" aria-label="Variant images">
-                        <button v-for="image in quickImages" :key="image" type="button" :class="{ selected: quickImage === image }" @click="quickImage = image"><img :src="image" alt="" width="90" height="113" loading="lazy" decoding="async"></button>
+                        <div v-if="quickViewLoading" class="quick-view-loader" role="status" aria-label="Loading product images"><span></span></div>
+                        <template v-else>
+                            <button v-for="image in quickImages" :key="image" type="button" :class="{ selected: quickImage === image }" @click="quickImage = image"><img :src="image" alt="" width="90" height="113" loading="lazy" decoding="async"></button>
+                        </template>
                     </div>
                 </div>
                 <div class="quick-view-info">
@@ -169,6 +172,8 @@ const drawer = ref(false);
 const quickView = ref(null);
 const quickColor = ref('');
 const quickImage = ref('');
+const quickViewLoading = ref(false);
+let quickViewRequest = 0;
 const display = ref('grid');
 const sort = ref('random');
 const sortOpen = ref(false);
@@ -365,10 +370,32 @@ async function loadAll() {
     while (catalogMeta.value.current_page < catalogMeta.value.last_page) await loadMore();
 }
 
-function openQuickView(product) {
+async function openQuickView(product) {
+    const requestId = ++quickViewRequest;
     quickView.value = product;
     quickColor.value = product.variantColor || product.colors?.[0] || '';
     quickImage.value = (product.variants?.find((variant) => variant.color === quickColor.value)?.images || product.images || [])[0] || '';
+    quickViewLoading.value = true;
+    try {
+        const endpoint = data.catalogDetailEndpoint || `${data.baseUrl || ''}/catalog/products`;
+        const response = await fetch(`${endpoint}/${encodeURIComponent(product.slug)}`, { headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error('Product gallery request failed');
+        const payload = await response.json();
+        if (requestId !== quickViewRequest || !quickView.value) return;
+        quickView.value = { ...product, ...payload.data };
+        const loadedVariant = quickView.value.variants?.find((variant) => variant.color === quickColor.value);
+        quickImage.value = loadedVariant?.images?.[0] || quickView.value.images?.[0] || quickImage.value;
+    } catch (error) {
+        // Keep the lightweight preview available if the gallery request fails.
+    } finally {
+        if (requestId === quickViewRequest) quickViewLoading.value = false;
+    }
+}
+
+function closeQuickView() {
+    quickViewRequest += 1;
+    quickViewLoading.value = false;
+    quickView.value = null;
 }
 
 function selectQuickColor(color) {

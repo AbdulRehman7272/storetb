@@ -1,13 +1,13 @@
 {
-  "_OrderSummary-DiLg-ELv.js": {
-    "file": "assets/OrderSummary-DiLg-ELv.js",
+  "_OrderSummary-D-37_XVx.js": {
+    "file": "assets/OrderSummary-D-37_XVx.js",
     "name": "OrderSummary",
     "imports": [
       "resources/js/app.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-8YtMBp3q.css",
+    "file": "assets/app-1DoZaTpR.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -22,7 +22,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-_AESGbKb.js",
+    "file": "assets/app-ktxDRabv.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -34,27 +34,27 @@
     ]
   },
   "resources/js/components/CartPage.vue": {
-    "file": "assets/CartPage-DVVCqs-t.js",
+    "file": "assets/CartPage-BqUKBi1y.js",
     "name": "CartPage",
     "src": "resources/js/components/CartPage.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_OrderSummary-DiLg-ELv.js",
+      "_OrderSummary-D-37_XVx.js",
       "resources/js/app.js"
     ]
   },
   "resources/js/components/CheckoutPage.vue": {
-    "file": "assets/CheckoutPage-CV4TpQNm.js",
+    "file": "assets/CheckoutPage-hM1Mml1Z.js",
     "name": "CheckoutPage",
     "src": "resources/js/components/CheckoutPage.vue",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.js",
-      "_OrderSummary-DiLg-ELv.js"
+      "_OrderSummary-D-37_XVx.js"
     ]
   },
   "resources/js/components/ProductDetail.vue": {
-    "file": "assets/ProductDetail-CqEWPPHw.js",
+    "file": "assets/ProductDetail-Dm_-rYpT.js",
     "name": "ProductDetail",
     "src": "resources/js/components/ProductDetail.vue",
     "isDynamicEntry": true,
@@ -63,7 +63,7 @@
     ]
   },
   "resources/js/components/UtilityPage.vue": {
-    "file": "assets/UtilityPage-BDrAAxkr.js",
+    "file": "assets/UtilityPage-JxYtj7Bk.js",
     "name": "UtilityPage",
     "src": "resources/js/components/UtilityPage.vue",
     "isDynamicEntry": true,
