@@ -87,16 +87,16 @@
 </template>
 
 <script setup>
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, defineAsyncComponent, defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import CategoryCard from './components/CategoryCard.vue';
 import ProductCard from './components/ProductCard.vue';
 import ProductGrid from './components/ProductGrid.vue';
-import ProductDetail from './components/ProductDetail.vue';
-import CartPage from './components/CartPage.vue';
-import CheckoutPage from './components/CheckoutPage.vue';
-import OrderSummary from './components/OrderSummary.vue';
-import UtilityPage from './components/UtilityPage.vue';
 import { formatPrice, toUrl, useCommerce } from './composables/useCommerce';
+
+const ProductDetail = defineAsyncComponent(() => import('./components/ProductDetail.vue'));
+const CartPage = defineAsyncComponent(() => import('./components/CartPage.vue'));
+const CheckoutPage = defineAsyncComponent(() => import('./components/CheckoutPage.vue'));
+const UtilityPage = defineAsyncComponent(() => import('./components/UtilityPage.vue'));
 
 const { data, state, cartCount, cartItems, addToCart, removeFromCart, updateQuantity, toast, subtotal, total, createWhatsAppUrl } = useCommerce();
 const page = data.page;
