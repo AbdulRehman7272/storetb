@@ -355,7 +355,9 @@ p { line-height: 1.75; }
 }
 .product-card__actions { display: flex; gap: 8px; }
 .product-card__actions .icon-button { width: 34px; height: 34px; }
-.product-card__actions .product-card__view { width:auto; min-height:34px; margin-left:auto; padding:0 14px; font-size:12px; }
+.product-card__actions .product-card__view { width:auto; min-height:34px; margin-left:auto; padding:0 12px; gap:6px; color:var(--color-gold-2); font-size:13px; }
+.product-card__view svg { flex:0 0 auto; }
+.product-card__view span { color:var(--color-gold-2); font-weight:800; }
 .product-card__title {
     display: -webkit-box;
     min-height: 2.4em;

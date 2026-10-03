@@ -22,7 +22,10 @@
         <div class="product-card__body">
             <div class="product-card__actions">
                 <button class="icon-button" type="button" :aria-label="wishlistLabel" :title="wishlistLabel" :class="{ selected: state.wishlist.includes(savedKey) }" @click="toggleWishlist(savedKey)">♡</button>
-                <button class="button button--ghost product-card__view" type="button" title="Open image gallery" @click="$emit('quick-view', product)">{{ imageCount }} {{ imageCount === 1 ? 'image' : 'images' }}</button>
+                <button class="button button--ghost product-card__view" type="button" :title="`${imageCount} ${imageCount === 1 ? 'image' : 'images'}`" :aria-label="`Open ${imageCount} product ${imageCount === 1 ? 'image' : 'images'}`" @click="$emit('quick-view', product)">
+                    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.06 12.35a1 1 0 0 1 0-.7C3.73 7.6 7.6 5 12 5c4.4 0 8.27 2.6 9.94 6.65a1 1 0 0 1 0 .7C20.27 16.4 16.4 19 12 19c-4.4 0-8.27-2.6-9.94-6.65Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span>{{ imageCount }}</span>
+                </button>
             </div>
             <a class="product-card__title" :href="productUrl">{{ displayName }}</a>
             <div class="price-row">
