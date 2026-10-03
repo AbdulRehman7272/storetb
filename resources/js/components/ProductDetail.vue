@@ -10,7 +10,7 @@
         <div class="product-detail__grid">
             <section class="gallery" aria-label="Product gallery">
                 <button class="gallery__main" type="button" @click="viewer = true" aria-label="Open full-screen image viewer">
-                    <img :src="selectedImage" :alt="`${product.name} in ${selectedColor}`" itemprop="image">
+                    <img :src="selectedImage" :alt="`${product.name} in ${selectedColor}`" width="1200" height="1500" fetchpriority="high" decoding="async" itemprop="image">
                     <span>Zoom</span>
                 </button>
                 <div class="cylinder-slider" aria-label="Product image cylinder slider">
@@ -24,7 +24,7 @@
                             type="button"
                             @click="imageIndex = item.index"
                         >
-                            <img :src="item.image" :alt="`${product.name} image ${item.index + 1}`" loading="lazy" decoding="async">
+                            <img :src="item.image" :alt="`${product.name} image ${item.index + 1}`" width="180" height="225" loading="lazy" decoding="async">
                         </button>
                     </div>
                     <button class="icon-button" type="button" aria-label="Next product image" @click="moveImage(1)">›</button>
@@ -113,7 +113,7 @@
             <div class="section-head"><div><p class="eyebrow">Pair It Well</p><h2>Frequently Bought Together</h2></div></div>
             <div class="mini-bundle">
                 <a v-for="item in recommendations" :key="item.slug" :href="toUrl('/product/' + item.slug)">
-                    <img :src="item.images[0]" :alt="item.name" loading="lazy" decoding="async">
+                    <img :src="item.images[0]" :alt="item.name" width="450" height="563" loading="lazy" decoding="async">
                     <span>{{ item.name }}</span>
                 </a>
             </div>
@@ -124,7 +124,7 @@
         <div v-if="viewer" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="Full-screen product image viewer">
             <div class="viewer">
                 <button class="icon-button modal__close" type="button" aria-label="Close viewer" @click="viewer = false">×</button>
-                <img :src="selectedImage" :alt="product.name">
+                <img :src="selectedImage" :alt="product.name" width="1200" height="1500">
             </div>
         </div>
     </article>

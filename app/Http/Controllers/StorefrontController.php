@@ -201,10 +201,9 @@ class StorefrontController extends Controller
                 'coupon' => ['code' => 'TBRAND500', 'amount' => 500],
             ],
             'categories' => $categoryData, 'collections' => $collections->map(fn ($collection) => $this->collectionData($collection))->values(),
-            'products' => $products, 'allProducts' => $products,
+            'allProducts' => $products,
             'catalogEndpoint' => route('catalog.products'),
             'catalogMeta' => ['current_page' => $catalogPage?->currentPage() ?? 1, 'last_page' => $catalogPage?->lastPage() ?? 1, 'per_page' => $batchSize, 'total' => $catalogPage?->total() ?? 0],
-            'featuredProducts' => $products->where('featured', true)->values(), 'bestSellers' => $products->sortByDesc('reviews')->take(8)->values(), 'newArrivals' => $products->take(8)->values(),
             'categoryPromotions' => $categoryData,
             'paymentAccounts' => in_array($page, ['checkout', 'cart'], true) ? PaymentAccount::query()->where('is_active', true)->orderBy('display_order')->get() : [],
             'shippingMethods' => in_array($page, ['checkout', 'cart'], true) ? ShippingMethod::query()->where('is_active', true)->get() : [],
@@ -270,23 +269,25 @@ class StorefrontController extends Controller
 
     private function productData(Product $product, bool $full = true): array
     {
-        $variants = $product->variants->where('is_enabled', true)->map(function ($variant) use ($full) {
+        $allVariants = $product->variants->where('is_enabled', true)->map(function ($variant) use ($full) {
             $colour = $variant->optionValues->firstWhere('option.slug', 'colour');
             $size = $variant->optionValues->firstWhere('option.slug', 'size');
-            $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->when(! $full, fn ($items) => $items->take(2))->map(fn ($image) => $this->assetUrl($image, $full ? 1600 : 900))->values();
+            $images = collect($variant->images ?: [])->prepend($variant->image)->filter()->unique()->when(! $full, fn ($items) => $items->take(1))->map(fn ($image) => $this->assetUrl($image, $full ? 1600 : 640))->values();
             return ['id' => $variant->id, 'name' => $variant->name, 'sku' => $variant->sku, 'color' => $colour?->value, 'swatch' => $colour?->swatch, 'size' => $size?->value, 'price' => $variant->price(), 'original_price' => $variant->sale_price !== null && $variant->sale_price < $variant->regular_price ? (float) $variant->regular_price : null, 'stock_quantity' => $variant->stock, 'image' => $images->first(), 'images' => $images];
         })->values();
-        $images = collect($product->media->when(! $full, fn ($items) => $items->take(2))->map(fn ($media) => $this->assetUrl($media->path, $full ? 1600 : 900))->filter()->all())
-            ->merge($variants->flatMap(fn ($variant) => $variant['images'])->filter()->all())
+        $colors = $allVariants->pluck('color')->filter()->unique()->values();
+        $sizes = $allVariants->pluck('size')->filter()->unique()->values();
+        $swatches = $allVariants->filter(fn ($v) => $v['color'])->mapWithKeys(fn ($v) => [$v['color'] => $v['swatch']])->all();
+        $variants = $full ? $allVariants : $allVariants->unique(fn ($variant) => $variant['color'] ?: $variant['id'])->values();
+        $images = collect($product->media->when(! $full, fn ($items) => $items->take(2))->map(fn ($media) => $this->assetUrl($media->path, $full ? 1600 : 640))->filter()->all())
+            ->when($full, fn ($items) => $items->merge($variants->flatMap(fn ($variant) => $variant['images'])->filter()->all()))
             ->unique()
             ->values();
+        if ($images->isEmpty()) $images = $variants->flatMap(fn ($variant) => $variant['images'])->filter()->take(2)->values();
         if ($images->isEmpty()) $images->push($product->imageUrl());
-        $lowestVariant = $variants->sortBy('price')->first();
+        $lowestVariant = $allVariants->sortBy('price')->first();
         $price = $product->product_type === 'variant' && $lowestVariant ? $lowestVariant['price'] : $product->price();
         $originalPrice = $product->product_type === 'variant' && $lowestVariant ? $lowestVariant['original_price'] : ($product->sale_price !== null && $product->sale_price < $product->regular_price ? (float) $product->regular_price : null);
-        $colors = $variants->pluck('color')->filter()->unique()->values();
-        $sizes = $variants->pluck('size')->filter()->unique()->values();
-        $swatches = $variants->filter(fn ($v) => $v['color'])->mapWithKeys(fn ($v) => [$v['color'] => $v['swatch']])->all();
         if ($product->product_type === 'single' && $product->color) {
             $colors = collect([$product->color]);
             $swatches = [$product->color => $product->swatch ?: '#777777'];
@@ -309,14 +310,13 @@ class StorefrontController extends Controller
     {
         if (! $path || str_starts_with($path, 'http')) return $path;
         $relative = ltrim($path, '/');
-        if (str_ends_with(strtolower($relative), '.webp')) return asset($relative);
         $source = public_path($relative);
         if (! is_file($source) || ! extension_loaded('gd')) return asset($relative);
         $targetRelative = preg_replace('/\.[^.]+$/', '-'.$maxWidth.'.webp', $relative);
         $target = public_path($targetRelative);
         if (is_file($target) && filemtime($target) >= filemtime($source)) return asset($targetRelative);
         $info = @getimagesize($source);
-        $creator = match ($info['mime'] ?? '') { 'image/jpeg' => 'imagecreatefromjpeg', 'image/png' => 'imagecreatefrompng', default => null };
+        $creator = match ($info['mime'] ?? '') { 'image/jpeg' => 'imagecreatefromjpeg', 'image/png' => 'imagecreatefrompng', 'image/webp' => 'imagecreatefromwebp', default => null };
         if (! $creator || ! function_exists($creator)) return asset($relative);
         $image = @$creator($source);
         if (! $image) return asset($relative);
@@ -329,7 +329,7 @@ class StorefrontController extends Controller
         imagefill($output, 0, 0, $transparent);
         imagecopyresampled($output, $image, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
         if (! is_dir(dirname($target))) @mkdir(dirname($target), 0775, true);
-        @imagewebp($output, $target, 82);
+        @imagewebp($output, $target, $maxWidth <= 700 ? 76 : 82);
         imagedestroy($output);
         imagedestroy($image);
         return asset(is_file($target) ? $targetRelative : $relative);

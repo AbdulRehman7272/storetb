@@ -117,7 +117,7 @@
             <div class="modal quick-view-modal">
                 <button class="icon-button modal__close" type="button" aria-label="Close quick view" @click="quickView = null">×</button>
                 <div class="quick-view-gallery">
-                    <img class="quick-view-gallery__main" :src="quickImage || quickImages[0]" :alt="quickView.name">
+                    <img class="quick-view-gallery__main" :src="quickImage || quickImages[0]" :alt="quickView.name" width="900" height="1125">
                 </div>
                 <div class="quick-view-options">
                     <div class="quick-view-colors" v-if="quickView.colors?.length">
@@ -127,7 +127,7 @@
                         </button>
                     </div>
                     <div class="quick-view-thumbs" aria-label="Variant images">
-                        <button v-for="image in quickImages" :key="image" type="button" :class="{ selected: quickImage === image }" @click="quickImage = image"><img :src="image" alt=""></button>
+                        <button v-for="image in quickImages" :key="image" type="button" :class="{ selected: quickImage === image }" @click="quickImage = image"><img :src="image" alt="" width="90" height="113" loading="lazy" decoding="async"></button>
                     </div>
                 </div>
                 <div class="quick-view-info">

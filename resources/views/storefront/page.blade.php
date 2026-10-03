@@ -20,6 +20,15 @@
     <meta name="twitter:description" content="{{ $meta['description'] }}">
     <meta name="twitter:image" content="{{ $meta['image'] }}">
     <link rel="icon" href="{{ asset('assets/favicon.ico') }}">
+    @php
+        $lcpImage = match ($page) {
+            'category' => $data['pageContext']['category']['hero'] ?? $data['store']['hero_image'],
+            'collection' => $data['pageContext']['collection']['image'] ?? $data['store']['hero_image'],
+            'product' => $data['pageContext']['product']['images'][0] ?? $data['store']['hero_image'],
+            default => $data['store']['hero_image'],
+        };
+    @endphp
+    @if($lcpImage)<link rel="preload" as="image" href="{{ $lcpImage }}" fetchpriority="high">@endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>:root{--color-ink:{{ \App\Support\StoreSettings::get('primary_color', '#111111') }};--color-gold:{{ \App\Support\StoreSettings::get('accent_color', '#c8a45d') }};--color-gold-2:{{ \App\Support\StoreSettings::get('accent_color', '#c8a45d') }};--color-text:{{ \App\Support\StoreSettings::get('page_text_color', '#f7f2e7') }};--color-button-text:{{ \App\Support\StoreSettings::get('button_text_color', '#161207') }}}</style>
     @php

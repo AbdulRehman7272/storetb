@@ -35,7 +35,7 @@
                 <a class="button button--whatsapp button--full" :href="whatsappUrl" target="_blank" rel="noreferrer">Order through WhatsApp</a>
             </form>
         </div><OrderSummary />
-    </section><ProductGrid :products="data.featuredProducts.slice(0, 4)" title="You May Also Like" eyebrow="Add Before You Order" /></div>
+    </section><ProductGrid :products="(data.allProducts || []).filter(product => product.featured).slice(0, 4)" title="You May Also Like" eyebrow="Add Before You Order" /></div>
 </template>
 
 <script setup>
