@@ -929,7 +929,10 @@ th { color: var(--color-gold-2); }
     display: grid;
     background: rgba(0,0,0,.72);
     backdrop-filter: blur(8px);
+    overscroll-behavior: none;
 }
+body:has(.drawer-backdrop), body:has(.modal-backdrop) { overflow:hidden; }
+.cart-drawer, .modal, .viewer, .search-overlay { overscroll-behavior:contain; }
 .drawer-backdrop { justify-items: end; }
 .cart-drawer {
     width: min(430px, 100vw);
